@@ -5,7 +5,7 @@ import io
 import os
 import sys
 
-import ixnetwork
+import ixload
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -35,7 +35,7 @@ class PyTest(TestCommand):
 
 setup(
     name='ixlooapi',
-    version=ixnetwork.__version__,
+    version=ixload.__version__,
     url='https://github.com/shmir/PyIxLoad/',
     license='Apache Software License',
     author='Yoram Shamir',

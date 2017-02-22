@@ -29,6 +29,7 @@ class IxlTestBase(TgnTest):
 
     def tearDown(self):
         super(IxlTestBase, self).tearDown()
+        self.ixl.disconnect()
 
     def testHelloWorld(self):
         pass
@@ -38,7 +39,7 @@ class IxlTestBase(TgnTest):
     #
 
     def _load_config(self, config_file):
-        self.ixl.load_config(config_file, 'Test2')
+        self.ixl.load_config(config_file, 'Test1')
 
     def _save_config(self):
         test_name = inspect.stack()[1][3]

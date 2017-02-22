@@ -4,13 +4,9 @@ Classes and utilities to manage IxLoad application.
 @author yoram@ignissoft.com
 """
 
-from os import path
-
 from trafficgenerator.trafficgenerator import TrafficGenerator
 
-from ixload.ixl_object import IxlObject
-
-TYPE_2_OBJECT = {}
+from ixload.ixl_object import IxlObject, IxlList
 
 
 class IxlApp(TrafficGenerator):
@@ -43,10 +39,11 @@ class IxlApp(TrafficGenerator):
 
     def disconnect(self):
         """ Disconnect from chassis and server. """
-        pass
+        self.api.disconnect()
 
     def load_config(self, config_file_name, test_name='Test1'):
-        self.repository = IxlRepository(rxf=config_file_name.replace('\\', '/'), test=test_name)
+        self.repository = IxlRepository(name=config_file_name.replace('\\', '/'), test=test_name)
+        IxlObject.repository = self.repository
 
     def save_config(self, config_file_name):
         self.repository.save_config(config_file_name.replace('\\', '/'))
@@ -68,14 +65,57 @@ class IxlRepository(IxlObject):
     def __init__(self, **data):
         data['objType'] = 'ixRepository'
         super(self.__class__, self).__init__(**data)
-        if 'test' in data:
-            self.load_test(data['test'])
+        self.cc = self.get_child('chassisChain')
+        self.cc.clear()
+        self.load_test(data.get('test', 'Test1'))
 
     def _create(self, **attributes):
-        return super(self.__class__, self)._create(rxf=self._data['rxf'])
+        return super(self.__class__, self)._create(name=self._data['name'])
 
     def load_test(self, name='Test1'):
-        self.command('testList.getItem ' + name)
+        for test in self.get_children('testList'):
+            if test.obj_name() == name:
+                self.test = test
+                break
+        for scenario in self.test.get_children('scenarioList'):
+            for column in scenario.get_children('columnList'):
+                column.get_children('elementList')
 
     def save_config(self, name):
         self.command('write', destination=name, overwrite=True)
+
+
+class IxlChassisChain(IxlObject):
+
+    def clear(self):
+        for chassis in self.command('getChassisNames').split():
+            self.command('deleteChassisByName', chassis)
+
+    def append(self, chassis):
+        chassis_id = 0
+        for index, name in enumerate(self.command('getChassisNames').split()):
+            if name == chassis:
+                chassis_id = index + 1
+        if not chassis_id:
+            self.command('addChassis', chassis)
+            self.command('refresh')
+            chassis_id = len(self.command('getChassisNames').split())
+        return chassis_id
+
+
+class IxlElement(IxlObject):
+
+    def __init__(self, **data):
+        super(self.__class__, self).__init__(**data)
+        self.network = self.get_child('network')
+
+    def reserve(self, location):
+        port_list = IxlList(self.network, 'port')
+        port_list.clear()
+        chassis, cardId, portId = location.split('/')
+        repository = IxlObject.repository
+        chassisId = repository.cc.append(chassis)
+        port_list.append(chassisId=chassisId, cardId=cardId, portId=portId)
+
+TYPE_2_OBJECT = {'chassischain': IxlChassisChain,
+                 'element': IxlElement}

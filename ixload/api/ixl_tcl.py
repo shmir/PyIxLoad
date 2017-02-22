@@ -25,7 +25,8 @@ class IxlTclWrapper(TgnTclWrapper):
         return self.eval('IxLoad ' + command + ' ' + ' '.join(arguments))
 
     def selfCommand(self, obj_ref, command, *arguments, **attributes):
-        return self.eval(obj_ref + ' ' + command + ' ' + ' '.join(arguments) + get_args_pairs(attributes))
+        str_arguments = ' '.join((str(a) for a in arguments))
+        return self.eval(obj_ref + ' ' + command + ' ' + str_arguments + get_args_pairs(attributes))
 
     #
     # IxLoad built in commands ordered alphabetically.
@@ -34,8 +35,14 @@ class IxlTclWrapper(TgnTclWrapper):
     def connect(self, ip='localhost', port='ignore'):
         return self.ixlCommand('connect ' + ip)
 
+    def disconnect(self):
+        self.ixlCommand('disconnect')
+
     def new(self, obj_type, **attributes):
         return self.ixlCommand('new ' + obj_type, get_args_pairs(attributes))
 
     def config(self, obj_ref, **attributes):
         self.selfCommand(obj_ref, 'config', get_args_pairs(attributes))
+
+    def cget(self, obj_ref, attribute):
+        return self.selfCommand(obj_ref, 'cget', '-' + attribute)

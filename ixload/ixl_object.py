@@ -4,15 +4,9 @@ Base classes and utilities to manage IxLoad (IXL).
 :author: yoram@ignissoft.com
 """
 
-import re
 from collections import OrderedDict
 
-from trafficgenerator.tgn_utils import is_true, TgnError
 from trafficgenerator.tgn_object import TgnObject
-
-
-def extract_ixn_obj_type_from_obj_ref(obj_ref):
-    return re.search('.*/(.*)', obj_ref).group(1).split(':')[0]
 
 
 class IxlObject(TgnObject):
@@ -20,7 +14,7 @@ class IxlObject(TgnObject):
 
     # Class level variables
     logger = None
-    root = None
+    repository = None
     api = None
 
     str_2_class = {}
@@ -47,31 +41,19 @@ class IxlObject(TgnObject):
     def set_attributes(self, **attributes):
         self.api.config(self.obj_ref(), **attributes)
 
-    def get_attributes(self, *attributes):
-        if not attributes:
-            return self.get_all_attributes(self.obj_ref())
-        attributes_values = {}
-        for attribute in attributes:
-            attributes_values[attribute] = self.get_attribute(attribute)
-        return attributes_values
-
     def get_attribute(self, attribute):
         """
         :param attribute: requested attributes.
         :return: attribute value.
-        :raise TgnError: if invalid attribute.
         """
-        value = self.api.getAttribute(self.obj_ref(), attribute)
-        # IXN returns '::ixNet::OK' for invalid attributes. We want error.
-        if value == '::ixNet::OK':
-            raise TgnError(self.obj_ref() + ' does not have attribute ' + attribute)
-        return value
+
+        return self.api.cget(self.obj_ref(), attribute)
 
     def get_list_attribute(self, attribute):
         """
         :return: attribute value as Python list.
         """
-        return self.api.getListAttribute(self.obj_ref(), attribute)
+        return self.get_attribute(attribute).split()
 
     def get_children(self, *types):
         """ Read (getList) children from IXN.
@@ -83,48 +65,42 @@ class IxlObject(TgnObject):
         """
 
         children_objs = OrderedDict()
-        if not types:
-            types = self.get_all_child_types(self.obj_ref())
         for child_type in types:
-            children_list = self.api.getList(self.obj_ref(), child_type)
+            if child_type.endswith('List'):
+                child_type = child_type[:-4]
+                children_list = IxlList(self, child_type).get_items()
+            else:
+                children_list = self.get_list_attribute(child_type)
             children_objs.update(self._build_children_objs(child_type, children_list))
         return list(children_objs.values())
 
     def get_name(self):
-        # self.get_attribute() will throw error in case name does not exists so we bypass it.
-        name = self.api.getAttribute(self.obj_ref(), 'name')
-        return name if name != '::ixNet::OK' else self.obj_ref()
-
-    def get_enabled(self):
-        enabled = self.api.getAttribute(self.obj_ref(), 'enabled')
-        return is_true(enabled) if enabled != '::ixNet::OK' else True
-
-    def set_enabled(self, enabled):
-        self.set_attributes(enabled=enabled)
+        return self.get_attribute('name')
 
     def execute(self, command, *arguments):
         return self.api.execute(command, self.obj_ref(), *arguments)
 
-    def help(self, objRef):
-        output = self.api.help(self.obj_ref())
-        children = None
-        if 'Child Lists:' in output:
-            children = output.split('Child Lists:')[1].split('Attributes:')[0].split('Execs:')[0]
-        attributes = None
-        if 'Attributes:' in output:
-            attributes = output.split('Attributes:')[1].split('Execs:')[0]
-        execs = None
-        if 'Execs:':
-            execs = output.split('Execs:')[1]
-        return children.strip().split('\n'), attributes.strip().split('\n'), execs.strip().split('\n')
 
-    def get_all_attributes(self, objRef):
-        _, attributes, _ = self.help(objRef)
-        attr_vals = {}
-        for attribute in [attribute.strip().split()[0][1:] for attribute in attributes]:
-            attr_vals[attribute] = self.get_attribute(attribute)
-        return attr_vals
+class IxlList(object):
 
-    def get_all_child_types(self, objRef):
-        children, _, _ = self.help(objRef)
-        return [attribute.strip().split()[0] for attribute in children]
+    def __init__(self, parent, name):
+        self.parent = parent
+        self.name = name
+
+    def get_index_count(self):
+        return int(self.parent.command(self.name + 'List.indexCount'))
+
+    def get_items(self):
+        items = []
+        for item_id in range(self.get_index_count()):
+            items.append(self.get_item(item_id))
+        return items
+
+    def get_item(self, item_id):
+        return self.parent.command(self.name + 'List.getItem', item_id)
+
+    def clear(self):
+        self.parent.command(self.name + 'List.clear')
+
+    def append(self, **attributes):
+        self.parent.command(self.name + 'List.appendItem', **attributes)

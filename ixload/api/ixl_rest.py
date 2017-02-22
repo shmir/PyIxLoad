@@ -32,7 +32,8 @@ class IxlRestWrapper(object):
         return self.eval('IxLoad ' + command + ' ' + ' '.join(arguments))
 
     def selfCommand(self, obj_ref, command, *arguments, **attributes):
-        return self.eval(obj_ref + ' ' + command + ' ' + ' '.join(arguments) + get_args_pairs(attributes))
+        if 'testList.getItem' in command:
+            pass
 
     #
     # IxLoad built in commands ordered alphabetically.
@@ -42,14 +43,17 @@ class IxlRestWrapper(object):
         self.api_url = 'http://{}:{}/api/v0/'.format(ip, port)
         self.connection = self.IxRestUtils.getConnection(ip, port)
 
+    def disconnect(self):
+        self.IxLoadUtils.deleteSession(self.connection, self.session_url)
+
     def new(self, obj_type, **attributes):
         if obj_type == 'ixTestController':
             self.session_url = self.IxLoadUtils.createSession(self.connection, str(self.api_version))
             return self.session_url
         elif obj_type == 'ixRepository':
             resource_url = self.api_url + 'resources'
-            upload_path = 'c:/temp/ixLoadGatewayUploads' + path.split(attributes['rxf'])[1]
-            self.IxLoadUtils.uploadFile(self.connection, resource_url, attributes['rxf'], upload_path)
+            upload_path = 'c:/temp/ixLoadGatewayUploads' + path.split(attributes['name'])[1]
+            self.IxLoadUtils.uploadFile(self.connection, resource_url, attributes['name'], upload_path)
             self.IxLoadUtils.loadRepository(self.connection, self.session_url, upload_path)
 
     def config(self, obj_ref, **attributes):
