@@ -4,6 +4,10 @@ Classes and utilities to manage IxLoad application.
 @author yoram@ignissoft.com
 """
 
+import time
+import csv
+
+from trafficgenerator.tgn_utils import is_true, is_false
 from trafficgenerator.trafficgenerator import TrafficGenerator
 
 from ixload.ixl_object import IxlObject, IxlList
@@ -52,12 +56,45 @@ class IxlApp(TrafficGenerator):
     # IxLoad GUI commands.
     #
 
+    def start_test(self, blocking=True):
+        self.controller.start_test(self.repository.test, blocking)
+
+    def stop_test(self):
+        self.controller.stop_test()
+
 
 class IxlController(IxlObject):
 
     def __init__(self, **data):
         data['objType'] = 'ixTestController'
         super(self.__class__, self).__init__(**data)
+        self.command('setResultDir', 'c:/temp/IxLoad')
+
+    def start_test(self, test, blocking=True):
+        self.api.eval('set ::ixTestControllerMonitor {}')
+        self.command('run', test.obj_ref())
+        while is_false(self.command('isBusy')):
+            time.sleep(1)
+        rc = self.api.eval('set dummy $::ixTestControllerMonitor')
+        if rc:
+            raise Exception(rc)
+        if blocking:
+            self.wait_for_test_finish()
+            self.release_test()
+
+    def stop_test(self):
+        self.command('stopRun')
+        self.release_test()
+
+    def wait_for_test_finish(self):
+        while is_true(self.command('isBusy')):
+            time.sleep(1)
+        rc = self.api.eval('set dummy $::ixTestControllerMonitor')
+        if 'status ok' not in rc.lower() and 'test stopped by the user' not in rc.lower():
+            raise Exception(rc)
+
+    def release_test(self):
+        self.command('releaseConfigWaitFinish')
 
 
 class IxlRepository(IxlObject):
@@ -116,6 +153,22 @@ class IxlElement(IxlObject):
         repository = IxlObject.repository
         chassisId = repository.cc.append(chassis)
         port_list.append(chassisId=chassisId, cardId=cardId, portId=portId)
+
+
+class IxlStatView(object):
+
+    def __init__(self, view):
+        self.view = view
+
+    def read_stats(self):
+        with open('c:/temp/IxLoad/' + self.view + '.csv', 'rb') as csvfile:
+            self.csv_reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
+            stats = ''
+            for row in self.csv_reader:
+                stats += '\n'
+                stats += ', '.join(row)
+        return stats
+
 
 TYPE_2_OBJECT = {'chassischain': IxlChassisChain,
                  'element': IxlElement}

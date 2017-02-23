@@ -90,7 +90,5 @@ ENV/
 
 *.pyc
 *-save.*
-*-1way.*
-*-2way.*
 test*.rxf
 ixload/test/logs
