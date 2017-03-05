@@ -12,7 +12,7 @@ Two IXL ports connected back to back.
 from os import path
 
 from ixload.test.test_base import IxlTestBase
-from ixload.ixl_app import IxlStatView
+from ixload.ixl_statistics_view import IxlStatView
 
 
 class IxlTestOnline(IxlTestBase):
@@ -25,14 +25,21 @@ class IxlTestOnline(IxlTestBase):
 
     def testRunTest(self):
         self._reserve_ports(path.join(path.dirname(__file__), 'configs/basic_config.rxf'))
+        self.ixl.controller.set_results_dir('c:/temp/IxLoadResTest')
         self.ixl.start_test()
         client_stats = IxlStatView('Test_Client')
-        print(client_stats.read_stats())
+        client_stats.read_stats()
         pass
 
     def testStats(self):
-        client_stats = IxlStatView('Test_Client')
-        print(client_stats.read_stats())
+        client_stats = IxlStatView('Test_Client', 'c:/temp/IxLoadResTest')
+        client_stats.read_stats()
+        print(client_stats.csv)
+        print(client_stats.captions)
+        print(client_stats.statistics)
+        print(client_stats.get_time_stamp_stats(10))
+        print(client_stats.get_stats('TCP Retries'))
+        print(client_stats.get_counters('TCP Retries'))
         pass
 
     def _reserve_ports(self, config_file):
