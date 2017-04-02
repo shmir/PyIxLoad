@@ -25,10 +25,10 @@ class IxlTestOnline(IxlTestBase):
 
     def testRunTest(self):
         self._reserve_ports(path.join(path.dirname(__file__), 'configs/basic_config.rxf'))
-        self.ixl.controller.set_results_dir('c:/temp/IxLoadResTest')
         self.ixl.start_test()
         client_stats = IxlStatView('Test_Client')
         client_stats.read_stats()
+        print(client_stats.csv)
         pass
 
     def testStats(self):

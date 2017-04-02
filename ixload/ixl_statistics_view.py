@@ -4,6 +4,7 @@ Classes and utilities to read IxLoad statistics views (==csv files).
 @author yoram@ignissoft.com
 """
 
+from os import path
 import csv
 from collections import OrderedDict
 
@@ -22,6 +23,7 @@ class IxlStatView(object):
         if not results_dir:
             controller = IxlApp.controller
             results_dir = controller.results_dir
+        self.results_dir = results_dir
 
     def read_stats(self):
         """ Reads the statistics view from the CSV file and saves it in statistics dictionary.
@@ -29,7 +31,7 @@ class IxlStatView(object):
         The original CSV file is saved in self.csv list so the test can access the raw data at any time.
         """
 
-        with open('c:/temp/IxLoad/' + self.view + '.csv', 'rb') as csvfile:
+        with open(path.join(self.results_dir.replace('\\', '/'), self.view + '.csv'), 'rb') as csvfile:
             self.csv_reader = csv.reader(csvfile, delimiter=',', quotechar='|')
             self.csv = []
             for row in self.csv_reader:
