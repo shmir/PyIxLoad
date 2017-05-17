@@ -123,6 +123,13 @@ class IxlRepository(IxlObject):
             for column in scenario.get_children('columnList'):
                 column.get_children('elementList')
 
+    def get_elements(self):
+        elements = {}
+        for scenario in self.test.get_objects_by_type('scenario'):
+            for column in scenario.get_objects_by_type('column'):
+                elements.update({o.obj_name(): o for o in column.get_objects_by_type('element')})
+        return elements
+
     def save_config(self, name):
         self.command('write', destination=name, overwrite=True)
 
@@ -159,5 +166,16 @@ class IxlElement(IxlObject):
         chassisId = repository.cc.append(chassis)
         port_list.append(chassisId=chassisId, cardId=cardId, portId=portId)
 
+
+class IxlScenario(IxlObject):
+    pass
+
+
+class IxlTest(IxlObject):
+    pass
+
+
 TYPE_2_OBJECT = {'chassischain': IxlChassisChain,
-                 'element': IxlElement}
+                 'element': IxlElement,
+                 'scenario': IxlScenario,
+                 'test': IxlTest}

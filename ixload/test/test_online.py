@@ -20,11 +20,12 @@ class IxlTestOnline(IxlTestBase):
     ports = []
 
     def testReservePorts(self):
-        self._reserve_ports(path.join(path.dirname(__file__), 'configs/basic_config.rxf'))
+        self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
         pass
 
     def testRunTest(self):
         self._reserve_ports(path.join(path.dirname(__file__), 'configs/basic_config.rxf'))
+        self.ixl.controller.set_results_dir('C:/temp/IxLoad')
         self.ixl.start_test()
         client_stats = IxlStatView('Test_Client')
         client_stats.read_stats()
@@ -32,11 +33,10 @@ class IxlTestOnline(IxlTestBase):
         pass
 
     def testStats(self):
-        client_stats = IxlStatView('Test_Client', 'c:/temp/IxLoadResTest')
+        client_stats = IxlStatView('Test_Client')
         client_stats.read_stats()
-        print(client_stats.csv)
-        print(client_stats.captions)
-        print(client_stats.statistics)
+        for time_stamp, values in client_stats.get_all_stats().items():
+            print('{} : {}'.format(time_stamp, values))
         print(client_stats.get_time_stamp_stats(10))
         print(client_stats.get_stats('TCP Retries'))
         print(client_stats.get_counters('TCP Retries'))

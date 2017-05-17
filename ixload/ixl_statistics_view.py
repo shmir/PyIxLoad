@@ -46,13 +46,23 @@ class IxlStatView(object):
                 elif 'Elapsed' in row_header:
                     self.captions = row
 
+    def get_all_stats(self):
+        """
+        :returns: all statistics values for all time stamps.
+        """
+
+        all_stats = OrderedDict()
+        for time_stamp in self.statistics:
+            all_stats[time_stamp] = self.get_time_stamp_stats(time_stamp)
+        return all_stats
+
     def get_time_stamp_stats(self, time_stamp):
         """
         :param obj_name: requested object name
         :returns: all statistics values for the requested time stamp.
         """
 
-        return dict(zip(self.captions, self.statistics[time_stamp]))
+        return OrderedDict(zip(self.captions, self.statistics[time_stamp]))
 
     def get_stats(self, stat_name):
         """
