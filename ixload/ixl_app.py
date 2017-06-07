@@ -114,10 +114,11 @@ class IxlRepository(IxlObject):
     def _create(self, **attributes):
         return super(self.__class__, self)._create(name=self._data['name'])
 
-    def load_test(self, name='Test1'):
+    def load_test(self, name='Test1', force_port_ownership=False):
         for test in self.get_children('testList'):
             if test.obj_name() == name:
                 self.test = test
+                self.test.set_attributes(enableForceOwnership=force_port_ownership)
                 break
         for scenario in self.test.get_children('scenarioList'):
             for column in scenario.get_children('columnList'):

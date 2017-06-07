@@ -24,7 +24,7 @@ class IxlTestOnline(IxlTestBase):
         pass
 
     def testRunTest(self):
-        self._reserve_ports(path.join(path.dirname(__file__), 'configs/basic_config.rxf'))
+        self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
         self.ixl.controller.set_results_dir('C:/temp/IxLoad')
         self.ixl.start_test()
         client_stats = IxlStatView('Test_Client')
@@ -45,5 +45,6 @@ class IxlTestOnline(IxlTestBase):
     def _reserve_ports(self, config_file):
         self._load_config(config_file)
         repository = self.ixl.repository
+        repository.test.set_attributes(enableForceOwnership=True)
         repository.get_object_by_name('Traffic1@Network1').reserve(self.config.get('IXL', 'Traffic1@Network1'))
         repository.get_object_by_name('Traffic2@Network2').reserve(self.config.get('IXL', 'Traffic2@Network2'))
