@@ -21,7 +21,6 @@ class IxlTestOnline(IxlTestBase):
 
     def testReservePorts(self):
         self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
-        pass
 
     def testRunTest(self):
         self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
@@ -29,8 +28,19 @@ class IxlTestOnline(IxlTestBase):
         self.ixl.start_test()
         client_stats = IxlStatView('Test_Client')
         client_stats.read_stats()
-        print(client_stats.csv)
-        pass
+        print(client_stats.get_all_stats())
+        assert(client_stats.get_stat(16, 'TCP SYN Sent/s') > 0)
+
+    def testRerunTest(self):
+        self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
+        self.ixl.controller.set_results_dir('C:/temp/IxLoad')
+        self.ixl.start_test(blocking=False)
+        self.ixl.stop_test()
+        self.ixl.start_test(blocking=True)
+        client_stats = IxlStatView('Test_Client')
+        client_stats.read_stats()
+        print(client_stats.get_all_stats())
+        assert(client_stats.get_stat(16, 'TCP SYN Sent/s') > 0)
 
     def testStats(self):
         client_stats = IxlStatView('Test_Client')
@@ -40,7 +50,6 @@ class IxlTestOnline(IxlTestBase):
         print(client_stats.get_time_stamp_stats(10))
         print(client_stats.get_stats('TCP Retries'))
         print(client_stats.get_counters('TCP Retries'))
-        pass
 
     def _reserve_ports(self, config_file):
         self._load_config(config_file)

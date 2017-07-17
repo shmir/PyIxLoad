@@ -81,7 +81,7 @@ class IxlController(IxlObject):
         while is_false(self.command('isBusy')):
             time.sleep(1)
         rc = self.api.eval('set dummy $::ixTestControllerMonitor')
-        if rc:
+        if rc and 'status OK' not in rc:
             raise Exception(rc)
         if blocking:
             self.wait_for_test_finish()
