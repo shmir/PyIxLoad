@@ -40,6 +40,8 @@ class IxlApp(TrafficGenerator):
         """
 
         self.api.connect(ip, port)
+        # In Linux MUST call statCollectorUtils AFTER connect.
+        self.api.eval('package require statCollectorUtils')
         IxlApp.controller = IxlController()
 
     def disconnect(self):

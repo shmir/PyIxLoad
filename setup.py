@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# encoding: utf-8
+
 from __future__ import print_function
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
@@ -21,6 +24,10 @@ def read(*filenames, **kwargs):
 
 long_description = read('README.txt')
 
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
+install_requires = [r for r in required if r and r[0] != '#' and not r.startswith('git')]
+
 
 class PyTest(TestCommand):
     def finalize_options(self):
@@ -39,8 +46,7 @@ setup(
     url='https://github.com/shmir/PyIxLoad/',
     license='Apache Software License',
     author='Yoram Shamir',
-    tests_require=['pytest'],
-    install_requires=['tgnooapi'],
+    install_requires=install_requires,
     cmdclass={'test': PyTest},
     author_email='yoram@ignissoft.com',
     description='Python OO API package to automate Ixia IxLoad traffic generator',
@@ -48,7 +54,8 @@ setup(
     packages=['ixload', 'ixload.test', 'ixload.api'],
     include_package_data=True,
     platforms='any',
-    test_suite='ixload.test',
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
     classifiers=[
         'Programming Language :: Python',
         'Development Status :: 4 - Beta',
@@ -57,7 +64,4 @@ setup(
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
         'Topic :: Software Development :: Testing :: Traffic Generation'],
-    extras_require={
-        'testing': ['pytest'],
-    }
 )

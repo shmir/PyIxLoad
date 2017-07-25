@@ -1,4 +1,6 @@
 future
 configparser
+pytest
+pytest_runner
 
 tgnooapi
