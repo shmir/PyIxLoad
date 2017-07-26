@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# encoding: utf-8
+
 """
 Base class for all IxLoad package tests.
 
@@ -44,3 +47,12 @@ class IxlTestBase(TgnTest):
     def _save_config(self):
         test_name = inspect.stack()[1][3]
         self.ixl.save_config(path.join(path.dirname(__file__), 'configs', test_name + '.rxf'))
+
+if __name__ == '__main__':
+    import sys
+    import unittest
+    from StringIO import StringIO
+    stream = StringIO()
+    runner = unittest.TextTestRunner(stream=stream)
+    result = runner.run(unittest.makeSuite(IxlTestBase, 'testHelloWorld'))
+    sys.exit(result)
