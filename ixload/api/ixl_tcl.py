@@ -53,7 +53,7 @@ class IxlTclWrapper(TgnTclWrapper):
     #
 
     def _linux_tcl_env(self, ixl_install_dir):
-        """ perform initialization equivalent to /opt/ixia/ixload/8.01.106.3/bin/ixloadtcl """
+        self.logger('perform initialization equivalent to /opt/ixia/ixload/version/bin/ixloadtcl')
         uninstall_path = os.path.join(ixl_install_dir, 'Uninstall_IxLoadTclApi' + ixl_install_dir.split('/')[-1])
         properties_file = os.path.join(uninstall_path, 'installvariables.properties')
         with open(properties_file, 'r') as f:

@@ -20,11 +20,11 @@ class IxlTestOnline(IxlTestBase):
     ports = []
 
     def testReservePorts(self):
-        self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
+        self._reserve_ports('E:/workspace/python/PyIxLoad/ixload/test\configs/test_config.rxf')
 
     def testRunTest(self):
-        self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
-        self.ixl.controller.set_results_dir('C:/temp/IxLoad')
+        self._reserve_ports('E:/workspace/python/PyIxLoad/ixload/test\configs/test_config.rxf')
+        self.ixl.controller.set_results_dir('//qsnas1/shared/yoram-s')
         self.ixl.start_test()
         client_stats = IxlStatView('Test_Client')
         client_stats.read_stats()
@@ -33,7 +33,7 @@ class IxlTestOnline(IxlTestBase):
 
     def testRerunTest(self):
         self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
-        self.ixl.controller.set_results_dir('C:/temp/IxLoad')
+        self.ixl.controller.set_results_dir('//qsnas1/shared/yoram-s')
         self.ixl.start_test(blocking=False)
         self.ixl.stop_test()
         self.ixl.start_test(blocking=True)
@@ -43,7 +43,7 @@ class IxlTestOnline(IxlTestBase):
         assert(client_stats.get_stat(16, 'TCP SYN Sent/s') > 0)
 
     def testStats(self):
-        client_stats = IxlStatView('Test_Client')
+        client_stats = IxlStatView('Test_Client', results_dir='/shared/yoram-s')
         client_stats.read_stats()
         for time_stamp, values in client_stats.get_all_stats().items():
             print('{} : {}'.format(time_stamp, values))

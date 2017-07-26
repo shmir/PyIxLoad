@@ -71,7 +71,7 @@ class IxlController(IxlObject):
     def __init__(self, **data):
         data['objType'] = 'ixTestController'
         super(self.__class__, self).__init__(**data)
-        self.set_results_dir(data.get('resultsDir', 'c:/temp/IxLoad'))
+        self.set_results_dir(data.get('resultsDir', 'c:/temp/IxLoadResults'))
 
     def set_results_dir(self, results_dir):
         self.results_dir = results_dir
