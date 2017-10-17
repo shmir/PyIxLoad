@@ -1,6 +1,5 @@
 future
 configparser
-pytest
-pytest_runner
+pytest-runner
 
-tgnooapi
+tgnooapi>=1.1.0

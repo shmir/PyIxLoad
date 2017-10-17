@@ -7,12 +7,12 @@ Classes and utilities to manage IxLoad application.
 import time
 
 from trafficgenerator.tgn_utils import is_true, is_false
-from trafficgenerator.trafficgenerator import TrafficGenerator
+from trafficgenerator.tgn_app import TgnApp
 
 from ixload.ixl_object import IxlObject, IxlList
 
 
-class IxlApp(TrafficGenerator):
+class IxlApp(TgnApp):
     """ IxLoad driver. Equivalent to IxLoad Application. """
 
     controller = None
@@ -24,9 +24,7 @@ class IxlApp(TrafficGenerator):
         :param api_wrapper: api wrapper object inheriting and implementing IxlApi base class.
         """
 
-        super(self.__class__, self).__init__()
-        self.logger = logger
-        self.api = api_wrapper
+        super(self.__class__, self).__init__(logger, api_wrapper)
 
         IxlObject.logger = self.logger
         IxlObject.api = self.api
@@ -70,6 +68,7 @@ class IxlController(IxlObject):
 
     def __init__(self, **data):
         data['objType'] = 'ixTestController'
+        data['parent'] = None
         super(self.__class__, self).__init__(**data)
         self.set_results_dir(data.get('resultsDir', 'c:/temp/IxLoadResults'))
 
