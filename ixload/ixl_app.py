@@ -6,10 +6,31 @@ Classes and utilities to manage IxLoad application.
 
 import time
 
-from trafficgenerator.tgn_utils import is_true, is_false
+from trafficgenerator.tgn_utils import is_true, is_false, ApiType, TgnError
 from trafficgenerator.tgn_app import TgnApp
 
+from ixload.api.ixl_tcl import IxlTclWrapper
+from ixload.api.ixl_rest import IxlRestWrapper
 from ixload.ixl_object import IxlObject, IxlList
+
+
+def init_ixl(api, logger, install_dir=None):
+    """ Create IXN object.
+
+    :param api: tcl/python/rest
+    :type api: trafficgenerator.tgn_utils.ApiType
+    :param logger: logger object
+    :param install_dir: IXL installation directory (Tcl only)
+    :return: IXL object
+    """
+
+    if api == ApiType.tcl:
+        api_wrapper = IxlTclWrapper(logger, install_dir)
+    elif api == ApiType.rest:
+        api_wrapper = IxlRestWrapper(logger)
+    else:
+        raise TgnError('{} API not supported - use Tcl or REST'.format(api))
+    return IxlApp(logger, api_wrapper)
 
 
 class IxlApp(TgnApp):
@@ -48,7 +69,6 @@ class IxlApp(TgnApp):
 
     def load_config(self, config_file_name, test_name='Test1'):
         self.repository = IxlRepository(name=config_file_name.replace('\\', '/'), test=test_name)
-        IxlObject.repository = self.repository
 
     def save_config(self, config_file_name):
         self.repository.save_config(config_file_name.replace('\\', '/'))
@@ -102,12 +122,24 @@ class IxlController(IxlObject):
     def release_test(self):
         self.command('releaseConfigWaitFinish')
 
+    def create_report(self, detailed=True):
+        """ Create detailed report under results directory.
+
+        :param detailed: True - detailed report, False - summary report.
+        :return: full path to report file.
+        """
+
+        self.command('generateReport', detailedReport=1)
+        return self.results_dir + ('IxLoad Detailed Report' if detailed else 'IxLoad Summary Report') + '/pdf'
+
 
 class IxlRepository(IxlObject):
 
     def __init__(self, **data):
         data['objType'] = 'ixRepository'
+        data['parent'] = None
         super(self.__class__, self).__init__(**data)
+        self.repository = self
         self.cc = self.get_child('chassisChain')
         self.cc.clear()
         self.load_test(data.get('test', 'Test1'))
@@ -164,8 +196,7 @@ class IxlElement(IxlObject):
         port_list = IxlList(self.network, 'port')
         port_list.clear()
         chassis, cardId, portId = location.split('/')
-        repository = IxlObject.repository
-        chassisId = repository.cc.append(chassis)
+        chassisId = self.repository.cc.append(chassis)
         port_list.append(chassisId=chassisId, cardId=cardId, portId=portId)
 
 

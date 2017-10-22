@@ -51,6 +51,9 @@ class IxlTestOnline(IxlTestBase):
         print(client_stats.get_stats('TCP Retries'))
         print(client_stats.get_counters('TCP Retries'))
 
+    def testReport(self):
+        print self.ixl.controller.create_report()
+
     def _reserve_ports(self, config_file):
         self._load_config(config_file)
         repository = self.ixl.repository

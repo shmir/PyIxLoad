@@ -4,8 +4,6 @@
 
 from os import path
 from sys import platform
-import imp
-from configparser import SafeConfigParser
 
 from trafficgenerator.tgn_tcl import get_args_pairs
 
@@ -17,16 +15,13 @@ else:
 
 class IxlRestWrapper(object):
 
-    def __init__(self, logger, ixl_install_dir):
-        super(self.__class__, self).__init__()
+    def __init__(self, logger):
+        """ Init IXL REST package.
 
-        utils_dir = path.join(ixl_install_dir, utils_sub_dir)
-        self.IxRestUtils = imp.load_source('IxRestUtils', path.join(utils_dir, 'ixRestUtils.py'))
-        self.IxLoadUtils = imp.load_source('IxLoadUtils', path.join(utils_dir, 'ixLoadUtils.py'))
+        :param looger: application logger.
+        """
 
-        config = SafeConfigParser(allow_no_value=True)
-        config.read(path.join(ixl_install_dir, 'buildversion.ini'))
-        self.api_version = config.get('build', 'IxAppVersion')
+        self.logger = logger
 
     def ixlCommand(self, command, *arguments):
         return self.eval('IxLoad ' + command + ' ' + ' '.join(arguments))

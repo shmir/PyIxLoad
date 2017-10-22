@@ -10,11 +10,10 @@ Base class for all IxLoad package tests.
 from os import path
 import inspect
 
+from trafficgenerator.tgn_utils import ApiType
 from trafficgenerator.test.test_tgn import TgnTest
 
-from ixload.api.ixl_tcl import IxlTclWrapper
-from ixload.api.ixl_rest import IxlRestWrapper
-from ixload.ixl_app import IxlApp
+from ixload.ixl_app import init_ixl
 
 
 class IxlTestBase(TgnTest):
@@ -23,11 +22,7 @@ class IxlTestBase(TgnTest):
 
     def setUp(self):
         super(IxlTestBase, self).setUp()
-        if self.config.get('IXL', 'api').lower() == 'tcl':
-            api_wrapper = IxlTclWrapper(self.logger, self.config.get('IXL', 'install_dir'))
-        else:
-            api_wrapper = IxlRestWrapper(self.logger, self.config.get('IXL', 'install_dir'))
-        self.ixl = IxlApp(self.logger, api_wrapper=api_wrapper)
+        self.ixl = init_ixl(ApiType[self.config.get('IXL', 'api')], self.logger, self.config.get('IXL', 'install_dir'))
         self.ixl.connect(self.config.get('IXL', 'server_ip'), self.config.get('IXL', 'server_port'))
 
     def tearDown(self):

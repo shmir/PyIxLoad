@@ -12,12 +12,12 @@ from trafficgenerator.tgn_object import TgnObject
 class IxlObject(TgnObject):
     """ Base class for all IXN classes. """
 
-    # Class level variables
-    logger = None
-    repository = None
-    api = None
-
     str_2_class = {}
+
+    def __init__(self, **data):
+        if data['parent']:
+            self.repository = data['parent'].repository
+        super(IxlObject, self).__init__(**data)
 
     def get_obj_class(self, obj_type):
         """
