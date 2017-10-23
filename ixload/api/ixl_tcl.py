@@ -33,8 +33,10 @@ class IxlTclWrapper(TgnTclWrapper):
     # IxLoad built in commands ordered alphabetically.
     #
 
-    def connect(self, ip='localhost', port='ignore'):
-        return self.ixlCommand('connect ' + ip)
+    def connect(self, ip='localhost', port='ignore', version='ignore'):
+        self.ixlCommand('connect ' + ip)
+        # In Linux MUST call statCollectorUtils AFTER connect.
+        self.eval('package require statCollectorUtils')
 
     def disconnect(self):
         self.ixlCommand('disconnect')

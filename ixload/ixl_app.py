@@ -38,7 +38,7 @@ class IxlApp(TgnApp):
 
     controller = None
 
-    def __init__(self, logger, api_wrapper=None):
+    def __init__(self, logger, api_wrapper):
         """ Set all kinds of application level objects - logger, api, etc.
 
         :param logger: python logger (e.g. logging.getLogger('log'))
@@ -51,16 +51,15 @@ class IxlApp(TgnApp):
         IxlObject.api = self.api
         IxlObject.str_2_class = TYPE_2_OBJECT
 
-    def connect(self, ip='localhost', port=8080):
+    def connect(self, version=None, ip='localhost', port=8080):
         """ Connect to IxTcl/REST server.
 
-        :param server: TxTcl/REST server.
+        :param version: IxLoad version, ignored for IxTcl server.
+        :param server: IxTcl/REST server.
         :param port: REST port, ignored for IxTcl server.
         """
 
-        self.api.connect(ip, port)
-        # In Linux MUST call statCollectorUtils AFTER connect.
-        self.api.eval('package require statCollectorUtils')
+        self.api.connect(ip, port, version)
         IxlApp.controller = IxlController()
 
     def disconnect(self):

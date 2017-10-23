@@ -1,5 +1,6 @@
 future
 configparser
 pytest-runner
+requests
 
 tgnooapi>=1.1.0
