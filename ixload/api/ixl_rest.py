@@ -94,8 +94,7 @@ class IxlRestWrapper(object):
 
     def new(self, obj_type, **attributes):
         if obj_type == 'ixTestController':
-            self.session_url = self.IxLoadUtils.createSession(self.connection, str(self.api_version))
-            return self.session_url
+            return self.session_url + '/ixload'
         elif obj_type == 'ixRepository':
             resource_url = self.api_url + 'resources'
             upload_path = 'c:/temp/ixLoadGatewayUploads' + path.split(attributes['name'])[1]
