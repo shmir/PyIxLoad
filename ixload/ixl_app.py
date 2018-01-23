@@ -8,6 +8,7 @@ import time
 
 from trafficgenerator.tgn_utils import is_true, is_false, ApiType, TgnError
 from trafficgenerator.tgn_app import TgnApp
+from ixload.api import IxLoadUtils
 
 from ixload.api.ixl_tcl import IxlTclWrapper
 from ixload.api.ixl_rest import IxlRestWrapper
@@ -160,15 +161,21 @@ class IxlRepository(IxlObject):
                 self.test = test
                 self.test.set_attributes(enableForceOwnership=force_port_ownership)
                 break
-#         for scenario in self.test.get_children('scenarioList'):
-#             for column in scenario.get_children('columnList'):
-#                 column.get_children('elementList')
+        if type(self.api) == IxlTclWrapper:
+            for scenario in self.test.get_children('scenarioList'):
+                for column in scenario.get_children('columnList'):
+                    column.get_children('elementList')
+        else:
+            test.get_children('communityList')
 
     def get_elements(self):
         elements = {}
-        for scenario in self.test.get_objects_by_type('scenario'):
-            for column in scenario.get_objects_by_type('column'):
-                elements.update({o.obj_name(): o for o in column.get_objects_by_type('element')})
+        if type(self.api) == IxlTclWrapper:
+            for scenario in self.test.get_objects_by_type('scenario'):
+                for column in scenario.get_objects_by_type('column'):
+                    elements.update({o.obj_name(): o for o in column.get_objects_by_type('element')})
+        else:
+            elements = {o.obj_name(): o for o in column.get_objects_by_type('community')}
         return elements
 
     def save_config(self, name):
@@ -181,14 +188,21 @@ class IxlChassisChain(IxlObject):
         self.api.clear_chassis_chain(self.ref)
 
     def append(self, chassis):
+        if type(self.api) == IxlTclWrapper:
+            chassis_list = self.command('getChassisNames').split()
+        else:
+            chassis_list = self.get_children('chassisList')
         chassis_id = 0
-        for index, name in enumerate(self.command('getChassisNames').split()):
+        for index, name in enumerate(chassis_list):
             if name == chassis:
                 chassis_id = index + 1
         if not chassis_id:
-            self.command('addChassis', chassis)
-            self.command('refresh')
-            chassis_id = len(self.command('getChassisNames').split())
+            if type(self.api) == IxlTclWrapper:
+                self.command('addChassis', chassis)
+                self.command('refresh')
+                chassis_id = len(self.command('getChassisNames').split())
+            else:
+                chassis_id = IxLoadUtils.addChassisList(self.api.connection, self.api.session_url, [chassis])[0]
         return chassis_id
 
 
@@ -206,6 +220,14 @@ class IxlElement(IxlObject):
         port_list.append(chassisId=chassisId, cardId=cardId, portId=portId)
 
 
+class IxlCommunity(IxlObject):
+
+    def reserve(self, location):
+        chassis, cardId, portId = location.split('/')
+        chassisId = self.repository.cc.append(chassis)
+        IxLoadUtils.assignPorts(self.api.connection, self.api.session_url, {self.name: [(chassisId, cardId, portId)]})
+
+
 class IxlScenario(IxlObject):
     pass
 
@@ -215,6 +237,7 @@ class IxlTest(IxlObject):
 
 
 TYPE_2_OBJECT = {'chassischain': IxlChassisChain,
+                 'community': IxlCommunity,
                  'element': IxlElement,
                  'scenario': IxlScenario,
                  'test': IxlTest}

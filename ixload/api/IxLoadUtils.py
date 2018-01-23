@@ -326,13 +326,16 @@ def addChassisList(connection, sessionUrl, chassisList):
     '''
     chassisListUrl = "%s/ixload/chassisChain/chassisList" % (sessionUrl)
 
+    chassis_ids = []
     for chassisName in chassisList:
-        data = {"name":chassisName}
+        data = {"name": '"' + chassisName + '"'}
         chassisId = performGenericPost(connection, chassisListUrl, data)
 
-        #refresh the chassis
+        # refresh the chassis
         refreshConnectionUrl = "%s/%s/operations/refreshConnection" % (chassisListUrl, chassisId)
         performGenericOperation(connection, refreshConnectionUrl, {})
+        chassis_ids.append(chassisId)
+    return chassis_ids
 
 
 def assignPorts(connection, sessionUrl, portListPerCommunity):

@@ -68,7 +68,8 @@ class IxlObject(TgnObject):
 
         children_objs = OrderedDict()
         for child_type in types:
-            children_objs.update(self._build_children_objs(child_type, self.api.get_children(self, child_type)))
+            children_objs.update(self._build_children_objs(child_type.replace('List', ''),
+                                                           self.api.get_children(self, child_type)))
         return list(children_objs.values())
 
     def get_name(self):

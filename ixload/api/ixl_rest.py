@@ -62,8 +62,8 @@ class IxlRestWrapper(object):
         """
 
         if child_type.endswith('List'):
-            response = self.connection.httpGet(parent.ref + '/' + child_type)
-            return response.jsonOptions['links']
+            child_ref = parent.ref + '/' + child_type
+            return [child_ref + '/' + str(o.objectID) for o in self.connection.httpGet(child_ref)]
         else:
             return [parent.ref + '/' + child_type]
 
