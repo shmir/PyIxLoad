@@ -74,9 +74,9 @@ class Connection(object):
     @classmethod
     def urljoin(cls, base, end):
         """ Join two URLs. If the second URL is absolute, the base is ignored.
-        
+
         Use this instead of urlparse.urljoin directly so that we can customize its behavior if necessary.
-        Currently differs in that it 
+        Currently differs in that it
             1. appends a / to base if not present.
             2. casts end to a str as a convenience
         """
@@ -92,7 +92,8 @@ class Connection(object):
             - url (optional) is the url that will be appended to the application url.
             - data (optional) is the data that needs to be sent along with the HTTP method as the JSON payload
             - params (optional) the payload python dict not necessary if data is used.
-            - headers (optional) these are the HTTP headers that will be sent along with the request. If left blank will use default
+            - headers (optional) these are the HTTP headers that will be sent along with the request. If left blank
+                will use default
 
             Method for making a HTTP request. The method type (GET, POST, PATCH, DELETE) will be sent as a parameter.
             Along with the url and request data. The HTTP response is returned
@@ -129,6 +130,7 @@ class Connection(object):
         '''
         return self.httpRequest("DELETE", url, data, params, headers)
 
+
 def _WebObject(value):
     '''
         Method used for creating a wrapper object corresponding to the JSON string received on a GET request.
@@ -141,6 +143,7 @@ def _WebObject(value):
         result = value
     return result
 
+
 class WebList(list):
     '''
         Using this class a JSON list will be transformed in a list of WebObject instances.
@@ -152,6 +155,7 @@ class WebList(list):
         '''
         for item in entries:
             self.append(_WebObject(item))
+
 
 class WebObject(object):
     '''

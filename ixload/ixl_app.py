@@ -98,13 +98,16 @@ class IxlController(IxlObject):
         self.command('setResultDir', self.results_dir)
 
     def start_test(self, test, blocking=True):
-        self.api.eval('set ::ixTestControllerMonitor {}')
-        self.command('run', test.obj_ref())
-        while is_false(self.command('isBusy')):
-            time.sleep(1)
-        rc = self.api.eval('set dummy $::ixTestControllerMonitor')
-        if rc and 'status OK' not in rc:
-            raise Exception(rc)
+        if type(self.api) == IxlTclWrapper:
+            self.api.eval('set ::ixTestControllerMonitor {}')
+            self.command('run', test.obj_ref())
+            while is_false(self.command('isBusy')):
+                time.sleep(1)
+            rc = self.api.eval('set dummy $::ixTestControllerMonitor')
+            if rc and 'status OK' not in rc:
+                raise Exception(rc)
+        else:
+            IxLoadUtils.runTest(self.api.connection, self.api.session_url)
         if blocking:
             self.wait_for_test_finish()
             self.release_test()
@@ -114,11 +117,14 @@ class IxlController(IxlObject):
         self.release_test()
 
     def wait_for_test_finish(self):
-        while is_true(self.command('isBusy')):
-            time.sleep(1)
-        rc = self.api.eval('set dummy $::ixTestControllerMonitor')
-        if 'status ok' not in rc.lower() and 'test stopped by the user' not in rc.lower():
-            raise Exception(rc)
+        if type(self.api) == IxlTclWrapper:
+            while is_true(self.command('isBusy')):
+                time.sleep(1)
+            rc = self.api.eval('set dummy $::ixTestControllerMonitor')
+            if 'status ok' not in rc.lower() and 'test stopped by the user' not in rc.lower():
+                raise Exception(rc)
+        else:
+            IxLoadUtils.waitForTestToReachUnconfiguredState(self.api.connection, self.api.session_url)
 
     def release_test(self):
         self.command('releaseConfigWaitFinish')

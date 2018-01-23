@@ -36,8 +36,7 @@ class IxlObject(TgnObject):
         return self.api.new(self.obj_type(), **attributes)
 
     def command(self, command, *arguments, **attributes):
-        if command != 'setResultDir':
-            return self.api.selfCommand(self.obj_ref(), command, *arguments, **attributes)
+        return self.api.selfCommand(self.obj_ref(), command, *arguments, **attributes)
 
     def set_attributes(self, **attributes):
         self.api.config(self.obj_ref(), **attributes)

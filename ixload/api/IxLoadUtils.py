@@ -1,6 +1,4 @@
-import os
-import sys
-import pprint
+
 import time
 
 from IxRestUtils import formatDictToJSONPayload
@@ -116,6 +114,8 @@ def performGenericPatch(connection, url, payloadDict):
     data = formatDictToJSONPayload(payloadDict)
 
     reply = connection.httpPatch(url=url, data=data)
+    if reply.status_code >= 400:
+        raise Exception('patch failed with error {} - {}'.format(reply.status_code, reply.text))
     return reply
 
 
@@ -266,7 +266,8 @@ def pollStats(connection, sessionUrl, watchedStatsDict, pollingInterval=4):
     statsDict = {}
 
     # remember the timstamps that were already collected - will be ignored in future
-    collectedTimestamps = {} # format { statSource : [2000, 4000, ...] }
+    # format { statSource : [2000, 4000, ...] }
+    collectedTimestamps = {}
     testIsRunning = True
 
     # check the test state, and poll stats while the test is still running
@@ -282,7 +283,8 @@ def pollStats(connection, sessionUrl, watchedStatsDict, pollingInterval=4):
             valuesDict = valuesObj.getOptions()
 
             # get just the new timestamps - that were not previously retrieved in another stats polling iteration
-            newTimestamps = [int(timestamp) for timestamp in valuesDict.keys() if timestamp not in collectedTimestamps.get(statSource, [])]
+            newTimestamps = [int(timestamp) for timestamp in valuesDict.keys() if
+                             timestamp not in collectedTimestamps.get(statSource, [])]
             newTimestamps.sort()
 
             for timestamp in newTimestamps:
@@ -305,7 +307,8 @@ def pollStats(connection, sessionUrl, watchedStatsDict, pollingInterval=4):
 
 def clearChassisList(connection, sessionUrl):
     '''
-        This method is used to clear the chassis list. After execution no chassis should be available in the chassisList.
+        This method is used to clear the chassis list. After execution no chassis should be available in the
+        chassisList.
         Args:
         - connection is the connection object that manages the HTTP data transfers between the client and the REST API
         - sessionUrl is the address of the session that should run the test
@@ -386,7 +389,7 @@ def getIPRangeListUrlForNetworkObj(connection, networkUrl):
 
         for link in networkObj.links:
             if link.rel == 'childrenList':
-                #remove the 'api/v0' elements of the url, since they are not needed for connection http get
+                # remove the 'api/v0' elements of the url, since they are not needed for connection http get
                 childrenListUrl = link.href.replace("/api/v0/", "")
 
                 return getIPRangeListUrlForNetworkObj(connection, childrenListUrl)
@@ -440,7 +443,7 @@ def getCommandListUrlForAgentName(connection, sessionUrl, agentName):
 
         for activity in activityList:
             if activity.name == agentName:
-                #agentActionListUrl = "%s/%s/agent/actionList" % (activityListUrl, activity.objectID)
+                # agentActionListUrl = "%s/%s/agent/actionList" % (activityListUrl, activity.objectID)
                 agentUrl = "%s/%s/agent" % (activityListUrl, activity.objectID)
                 agent = connection.httpGet(agentUrl)
 
@@ -474,7 +477,8 @@ def addCommands(connection, sessionUrl, commandDict):
         Args:
         - connection is the connection object that manages the HTTP data transfers between the client and the REST API
         - sessionUrl is the address of the session that should run the test
-        - commandDict is the Python dict that holds the mapping between agent name and specific commands. (commandDict format -> { agent name : [ { field : value } ] })
+        - commandDict is the Python dict that holds the mapping between agent name and specific commands. (commandDict
+            format -> { agent name : [ { field : value } ] })
     '''
     for agentName in commandDict.keys():
         commandListUrl = getCommandListUrlForAgentName(connection, sessionUrl, agentName)
@@ -491,7 +495,8 @@ def changeActivityOptions(connection, sessionUrl, activityOptionsToChange):
         Args:
         - connection is the connection object that manages the HTTP data transfers between the client and the REST API
         - sessionUrl is the address of the session that should run the test
-        - activityOptionsToChange is the Python dict that holds the mapping between agent name and specific properties (activityOptionsToChange format: { activityName : { option : value } })
+        - activityOptionsToChange is the Python dict that holds the mapping between agent name and specific properties
+            (activityOptionsToChange format: { activityName : { option : value } })
     '''
     communtiyListUrl = "%s/ixload/test/activeTest/communityList" % sessionUrl
     communityList = connection.httpGet(url=communtiyListUrl)

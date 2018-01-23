@@ -24,8 +24,12 @@ class IxlTestOnline(IxlTestBase):
 
     def testRunTest(self):
         self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
+        self.ixl.start_test(blocking=True)
+
+    def testRunStats(self):
+        self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
         self.ixl.controller.set_results_dir('C:/temp/IxLoad')
-        self.ixl.start_test()
+        self.ixl.start_test(blocking=True)
         client_stats = IxlStatView('Test_Client')
         client_stats.read_stats()
         print(client_stats.get_all_stats())
@@ -42,7 +46,7 @@ class IxlTestOnline(IxlTestBase):
         print(client_stats.get_all_stats())
         assert(client_stats.get_stat(16, 'TCP SYN Sent/s') > 0)
 
-    def testStats(self):
+    def testExistingStats(self):
         client_stats = IxlStatView('Test_Client')
         client_stats.read_stats()
         for time_stamp, values in client_stats.get_all_stats().items():

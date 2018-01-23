@@ -73,3 +73,7 @@ class IxlRestWrapper(object):
     def selfCommand(self, obj_ref, command, *arguments, **attributes):
         if command == 'write':
             IxLoadUtils.saveRxf(self.connection, self.session_url, attributes['destination'])
+        elif command == 'releaseConfigWaitFinish':
+            pass
+        elif command == 'setResultDir':
+            self.config(obj_ref + '/ixload/test', outputDir=True, runResultDirFull=arguments[0])
