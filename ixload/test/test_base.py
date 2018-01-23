@@ -38,11 +38,12 @@ class IxlTestBase(TgnTest):
     #
 
     def _load_config(self, config_file):
-        self.ixl.load_config(config_file, 'Test1', )
+        self.ixl.load_config(config_file, 'Test1')
 
     def _save_config(self):
         test_name = inspect.stack()[1][3]
         self.ixl.save_config(path.join(path.dirname(__file__), 'configs', test_name + '.rxf'))
+
 
 if __name__ == '__main__':
     import sys

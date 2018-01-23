@@ -4,6 +4,7 @@
 
 import os
 from sys import platform
+from collections import OrderedDict
 
 from trafficgenerator.tgn_tcl import TgnTclWrapper, get_args_pairs, py_list_to_tcl_list
 
@@ -50,6 +51,26 @@ class IxlTclWrapper(TgnTclWrapper):
     def cget(self, obj_ref, attribute):
         return self.selfCommand(obj_ref, 'cget', '-' + attribute)
 
+    def cgetList(self, obj_ref, attribute):
+        return self.cget(obj_ref, attribute).split()
+
+    def get_children(self, parent, child_type):
+        """ Read (getList) children from IXN.
+
+        :param parent: parent object .
+        :param child_type: requested child type.
+        :return: list of all children objects of the requested types.
+        """
+
+        if child_type.endswith('List'):
+            return IxlList(parent, child_type[:-4]).get_items()
+        else:
+            return self.cgetList(parent.ref, child_type)
+
+    def clear_chassis_chain(self, obj_ref):
+        for chassis in self.selfCommand(obj_ref, 'getChassisNames').split():
+            self.selfCommand(obj_ref, 'deleteChassisByName', chassis)
+
     #
     # Private auxiliary methods.
     #
@@ -74,3 +95,28 @@ class IxlTclWrapper(TgnTclWrapper):
                     if os.path.exists(os.path.join(full_path, 'pkgIndex.tcl')):
                         tcl_lib_path.append(full_path)
         self.eval('set ::env(TCLLIBPATH) ' + py_list_to_tcl_list(tcl_lib_path))
+
+
+class IxlList(object):
+
+    def __init__(self, parent, name):
+        self.parent = parent
+        self.name = name
+
+    def get_index_count(self):
+        return int(self.parent.command(self.name + 'List.indexCount'))
+
+    def get_items(self):
+        items = []
+        for item_id in range(self.get_index_count()):
+            items.append(self.get_item(item_id))
+        return items
+
+    def get_item(self, item_id):
+        return self.parent.command(self.name + 'List.getItem', item_id)
+
+    def clear(self):
+        self.parent.command(self.name + 'List.clear')
+
+    def append(self, **attributes):
+        self.parent.command(self.name + 'List.appendItem', **attributes)

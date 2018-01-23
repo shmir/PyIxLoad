@@ -54,7 +54,8 @@ class IxlObject(TgnObject):
         """
         :return: attribute value as Python list.
         """
-        return self.get_attribute(attribute).split()
+
+        return self.api.cgetList(self.obj_ref(), attribute)
 
     def get_children(self, *types):
         """ Read (getList) children from IXN.
@@ -67,41 +68,13 @@ class IxlObject(TgnObject):
 
         children_objs = OrderedDict()
         for child_type in types:
-            if child_type.endswith('List'):
-                child_type = child_type[:-4]
-                children_list = IxlList(self, child_type).get_items()
-            else:
-                children_list = self.get_list_attribute(child_type)
-            children_objs.update(self._build_children_objs(child_type, children_list))
+            children_objs.update(self._build_children_objs(child_type, self.api.get_children(self, child_type)))
         return list(children_objs.values())
 
     def get_name(self):
-        return self.get_attribute('name')
+        name = self.get_attribute('name')
+        self._data['name'] = name if name else self.ref
+        return self._data['name']
 
     def execute(self, command, *arguments):
         return self.api.execute(command, self.obj_ref(), *arguments)
-
-
-class IxlList(object):
-
-    def __init__(self, parent, name):
-        self.parent = parent
-        self.name = name
-
-    def get_index_count(self):
-        return int(self.parent.command(self.name + 'List.indexCount'))
-
-    def get_items(self):
-        items = []
-        for item_id in range(self.get_index_count()):
-            items.append(self.get_item(item_id))
-        return items
-
-    def get_item(self, item_id):
-        return self.parent.command(self.name + 'List.getItem', item_id)
-
-    def clear(self):
-        self.parent.command(self.name + 'List.clear')
-
-    def append(self, **attributes):
-        self.parent.command(self.name + 'List.appendItem', **attributes)

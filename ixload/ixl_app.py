@@ -11,7 +11,8 @@ from trafficgenerator.tgn_app import TgnApp
 
 from ixload.api.ixl_tcl import IxlTclWrapper
 from ixload.api.ixl_rest import IxlRestWrapper
-from ixload.ixl_object import IxlObject, IxlList
+from ixload.ixl_object import IxlObject
+from ixload.api.ixl_tcl import IxlList
 
 
 def init_ixl(api, logger, install_dir=None):
@@ -147,14 +148,21 @@ class IxlRepository(IxlObject):
         return super(self.__class__, self)._create(name=self._data['name'])
 
     def load_test(self, name='Test1', force_port_ownership=False):
-        for test in self.get_children('testList'):
+        if type(self.api) == IxlTclWrapper:
+            tests = self.get_children('testList')
+        else:
+            test = IxlObject(parent=self, objType='tests', objRef=self.ref + '/test/activeTest')
+            test.get_name()
+            tests = [test]
+
+        for test in tests:
             if test.obj_name() == name:
                 self.test = test
                 self.test.set_attributes(enableForceOwnership=force_port_ownership)
                 break
-        for scenario in self.test.get_children('scenarioList'):
-            for column in scenario.get_children('columnList'):
-                column.get_children('elementList')
+#         for scenario in self.test.get_children('scenarioList'):
+#             for column in scenario.get_children('columnList'):
+#                 column.get_children('elementList')
 
     def get_elements(self):
         elements = {}
@@ -170,8 +178,7 @@ class IxlRepository(IxlObject):
 class IxlChassisChain(IxlObject):
 
     def clear(self):
-        for chassis in self.command('getChassisNames').split():
-            self.command('deleteChassisByName', chassis)
+        self.api.clear_chassis_chain(self.ref)
 
     def append(self, chassis):
         chassis_id = 0
