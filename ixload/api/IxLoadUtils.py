@@ -194,9 +194,17 @@ def runTest(connection, sessionUrl):
         :param sessionUrl: the address of the session that should run the test.
     """
     startRunUrl = "%s/ixload/test/operations/runTest" % (sessionUrl)
-    data = {}
+    performGenericOperation(connection, startRunUrl, {})
 
-    performGenericOperation(connection, startRunUrl, data)
+
+def stopTest(connection, sessionUrl):
+    """ Stop the currently running test. After starting the 'Start Test' action, wait for the action to complete.
+
+        :param connection: connection object that manages the HTTP data transfers between the client and the REST API
+        :param sessionUrl: the address of the session that should run the test.
+    """
+    startRunUrl = "%s/ixload/test/operations/abortAndReleaseConfigWaitFinish" % (sessionUrl)
+    performGenericOperation(connection, startRunUrl, {})
 
 
 def getTestCurrentState(connection, sessionUrl):
@@ -331,7 +339,7 @@ def addChassisList(connection, sessionUrl, chassisList):
 
     chassis_ids = []
     for chassisName in chassisList:
-        data = {"name": '"' + chassisName + '"'}
+        data = {"name": str(chassisName)}
         chassisId = performGenericPost(connection, chassisListUrl, data)
 
         # refresh the chassis

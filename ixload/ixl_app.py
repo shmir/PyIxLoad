@@ -113,8 +113,11 @@ class IxlController(IxlObject):
             self.release_test()
 
     def stop_test(self):
-        self.command('stopRun')
-        self.release_test()
+        if type(self.api) == IxlTclWrapper:
+            self.command('stopRun')
+            self.release_test()
+        else:
+            IxLoadUtils.stopTest(self.api.connection, self.api.session_url)
 
     def wait_for_test_finish(self):
         if type(self.api) == IxlTclWrapper:
@@ -172,7 +175,7 @@ class IxlRepository(IxlObject):
                 for column in scenario.get_children('columnList'):
                     column.get_children('elementList')
         else:
-            test.get_children('communityList')
+            self.test.get_children('communityList')
 
     def get_elements(self):
         elements = {}
@@ -181,7 +184,7 @@ class IxlRepository(IxlObject):
                 for column in scenario.get_objects_by_type('column'):
                     elements.update({o.obj_name(): o for o in column.get_objects_by_type('element')})
         else:
-            elements = {o.obj_name(): o for o in column.get_objects_by_type('community')}
+            elements = {o.obj_name(): o for o in self.test.get_objects_by_type('community')}
         return elements
 
     def save_config(self, name):

@@ -2,10 +2,7 @@
 @author yoram@ignissoft.com
 """
 
-import sys
 import logging
-
-from trafficgenerator.tgn_tcl import get_args_pairs
 
 import IxRestUtils
 import IxLoadUtils
@@ -76,4 +73,4 @@ class IxlRestWrapper(object):
         elif command == 'releaseConfigWaitFinish':
             pass
         elif command == 'setResultDir':
-            self.config(obj_ref + '/ixload/test', outputDir=True, runResultDirFull=arguments[0])
+            self.config(obj_ref + '/ixload/test', outputDir=True, runResultDirFull=str(arguments[0]))

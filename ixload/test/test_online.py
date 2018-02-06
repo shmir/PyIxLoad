@@ -10,6 +10,7 @@ Two IXL ports connected back to back.
 """
 
 from os import path
+import time
 
 from ixload.test.test_base import IxlTestBase
 from ixload.ixl_statistics_view import IxlStatView
@@ -25,6 +26,12 @@ class IxlTestOnline(IxlTestBase):
     def testRunTest(self):
         self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
         self.ixl.start_test(blocking=True)
+
+    def testRunStopTest(self):
+        self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
+        self.ixl.start_test(blocking=False)
+        time.sleep(8)
+        self.ixl.stop_test()
 
     def testRunStats(self):
         self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
