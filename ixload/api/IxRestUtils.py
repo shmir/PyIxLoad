@@ -13,6 +13,8 @@ import requests
 
 from urlparse import urljoin
 
+logger = None
+
 
 # Gets a Connection instance, that will be used to make the HTTP requests to the application
 def getConnection(server, port):
@@ -101,7 +103,10 @@ class Connection(object):
         headers[Connection.kHeaderContentType] = Connection.kContentJson
 
         absUrl = Connection.urljoin(self.url, url)
+        logger.debug('method={}, absUrl={}, data={}, params={}, headers={}'.
+                     format(method, absUrl, data, params, headers))
         result = self._getHttpSession().request(method, absUrl, data=str(data), params=params, headers=headers)
+        logger.debug('code={}, ok={}, text={}'.format(result, result.ok, result.text))
         return result
 
     def httpGet(self, url="", data="", params={}, headers={}):

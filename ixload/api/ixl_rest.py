@@ -2,8 +2,6 @@
 @author yoram@ignissoft.com
 """
 
-import logging
-
 import IxRestUtils
 import IxLoadUtils
 
@@ -17,8 +15,8 @@ class IxlRestWrapper(object):
         """
 
         self.logger = logger
-        logging.basicConfig()
-        logging.getLogger().setLevel(logging.DEBUG)
+        IxLoadUtils.logger = logger
+        IxRestUtils.logger = logger
 
     #
     # IxLoad built in commands ordered alphabetically.

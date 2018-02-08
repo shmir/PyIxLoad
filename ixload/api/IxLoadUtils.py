@@ -9,10 +9,7 @@ kActionStatusSuccessful = 'Successful'
 kActionStatusError = 'Error'
 kTestStateUnconfigured = 'Unconfigured'
 
-
-def log(message):
-    currentTime = time.strftime("%H:%M:%S")
-    print "%s -> %s" % (currentTime, message)
+logger = None
 
 
 def waitForActionToFinish(connection, replyObj, actionUrl):
@@ -139,8 +136,6 @@ def createSession(connection, ixLoadVersion):
     # start the session
     performGenericOperation(connection, startSessionUrl, {})
 
-    log("Created session no %s" % sessionId)
-
     return newSessionUrl
 
 
@@ -166,7 +161,6 @@ def loadRepository(connection, sessionUrl, rxfFilePath):
         - rxfFilePath is the local rxf path on the machine that holds the IxLoad instance
     '''
 
-    log('load configuration ' + rxfFilePath)
     loadTestUrl = "%s/ixload/test/operations/loadTest" % (sessionUrl)
     data = {"fullPath": rxfFilePath}
     performGenericOperation(connection, loadTestUrl, data)
@@ -305,12 +299,9 @@ def pollStats(connection, sessionUrl, watchedStatsDict, pollingInterval=4):
                 # save the values for the current timestamp, and later print them
                 for caption, value in valuesDict[timeStampStr].getOptions().items():
                     if caption in watchedStatsDict[statSource]:
-                        log("Timestamp %s - %s -> %s" % (timeStampStr, caption, value))
                         timestampDict[caption] = value
 
         testIsRunning = getTestCurrentState(connection, sessionUrl) == "Running"
-
-    log("Stopped receiving stats.")
 
 
 def clearChassisList(connection, sessionUrl):
