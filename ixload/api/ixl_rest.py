@@ -33,7 +33,8 @@ class IxlRestWrapper(object):
         if obj_type == 'ixTestController':
             return self.session_url
         elif obj_type == 'ixRepository':
-            IxLoadUtils.loadRepository(self.connection, self.session_url, attributes['name'])
+            if 'name' in attributes:
+                IxLoadUtils.loadRepository(self.connection, self.session_url, attributes['name'])
             return self.session_url + '/ixload'
 
     def cget(self, obj_ref, attribute):

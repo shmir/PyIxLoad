@@ -14,6 +14,7 @@ from ixload.api.ixl_tcl import IxlTclWrapper
 from ixload.api.ixl_rest import IxlRestWrapper
 from ixload.ixl_object import IxlObject
 from ixload.api.ixl_tcl import IxlList
+from ixload.ixl_hw import IxlChassisChain
 
 
 def init_ixl(api, logger, install_dir=None):
@@ -67,6 +68,9 @@ class IxlApp(TgnApp):
     def disconnect(self):
         """ Disconnect from chassis and server. """
         self.api.disconnect()
+
+    def new_config(self):
+        self.repository = IxlRepository()
 
     def load_config(self, config_file_name, test_name='Test1'):
         self.repository = IxlRepository(name=config_file_name.replace('\\', '/'), test=test_name)
@@ -155,7 +159,7 @@ class IxlRepository(IxlObject):
         self.load_test(data.get('test', 'Test1'))
 
     def _create(self, **attributes):
-        return super(self.__class__, self)._create(name=self._data['name'])
+        return super(self.__class__, self)._create(name=self._data.get('name', None))
 
     def load_test(self, name='Test1', force_port_ownership=False):
         if type(self.api) == IxlTclWrapper:
@@ -189,30 +193,6 @@ class IxlRepository(IxlObject):
 
     def save_config(self, name):
         self.command('write', destination=name, overwrite=True)
-
-
-class IxlChassisChain(IxlObject):
-
-    def clear(self):
-        self.api.clear_chassis_chain(self.ref)
-
-    def append(self, chassis):
-        if type(self.api) == IxlTclWrapper:
-            chassis_list = self.command('getChassisNames').split()
-        else:
-            chassis_list = self.get_children('chassisList')
-        chassis_id = 0
-        for index, name in enumerate(chassis_list):
-            if name == chassis:
-                chassis_id = index + 1
-        if not chassis_id:
-            if type(self.api) == IxlTclWrapper:
-                self.command('addChassis', chassis)
-                self.command('refresh')
-                chassis_id = len(self.command('getChassisNames').split())
-            else:
-                chassis_id = IxLoadUtils.addChassisList(self.api.connection, self.api.session_url, [chassis])[0]
-        return chassis_id
 
 
 class IxlElement(IxlObject):
