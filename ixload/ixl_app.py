@@ -4,35 +4,27 @@ Classes and utilities to manage IxLoad application.
 @author yoram@ignissoft.com
 """
 
-import time
+import logging
 
-from trafficgenerator.tgn_utils import is_true, is_false, ApiType, TgnError
 from trafficgenerator.tgn_app import TgnApp
 from ixload.api import IxLoadUtils
 
-from ixload.api.ixl_tcl import IxlTclWrapper
 from ixload.api.ixl_rest import IxlRestWrapper
 from ixload.ixl_object import IxlObject
-from ixload.api.ixl_tcl import IxlList
 from ixload.ixl_hw import IxlChassisChain
 
 
-def init_ixl(api, logger, install_dir=None):
+def init_ixl(logger=None):
     """ Create IXN object.
 
-    :param api: tcl/python/rest
-    :type api: trafficgenerator.tgn_utils.ApiType
-    :param logger: logger object
-    :param install_dir: IXL installation directory (Tcl only)
+    :param logger: python logger object. If no logger the package will create default logger.
     :return: IXL object
     """
 
-    if api == ApiType.tcl:
-        api_wrapper = IxlTclWrapper(logger, install_dir)
-    elif api == ApiType.rest:
-        api_wrapper = IxlRestWrapper(logger)
-    else:
-        raise TgnError('{} API not supported - use Tcl or REST'.format(api))
+    if not logger:
+        logger = logging.getLogger('ixload')
+        logger.addHandler(logging.StreamHandler())
+    api_wrapper = IxlRestWrapper(logger)
     return IxlApp(logger, api_wrapper)
 
 
@@ -102,36 +94,16 @@ class IxlController(IxlObject):
         self.command('setResultDir', self.results_dir)
 
     def start_test(self, test, blocking=True):
-        if type(self.api) == IxlTclWrapper:
-            self.api.eval('set ::ixTestControllerMonitor {}')
-            self.command('run', test.obj_ref())
-            while is_false(self.command('isBusy')):
-                time.sleep(1)
-            rc = self.api.eval('set dummy $::ixTestControllerMonitor')
-            if rc and 'status OK' not in rc:
-                raise Exception(rc)
-        else:
-            IxLoadUtils.runTest(self.api.connection, self.api.session_url)
+        IxLoadUtils.runTest(self.api.connection, self.api.session_url)
         if blocking:
             self.wait_for_test_finish()
             self.release_test()
 
     def stop_test(self):
-        if type(self.api) == IxlTclWrapper:
-            self.command('stopRun')
-            self.release_test()
-        else:
-            IxLoadUtils.stopTest(self.api.connection, self.api.session_url)
+        IxLoadUtils.stopTest(self.api.connection, self.api.session_url)
 
     def wait_for_test_finish(self):
-        if type(self.api) == IxlTclWrapper:
-            while is_true(self.command('isBusy')):
-                time.sleep(1)
-            rc = self.api.eval('set dummy $::ixTestControllerMonitor')
-            if 'status ok' not in rc.lower() and 'test stopped by the user' not in rc.lower():
-                raise Exception(rc)
-        else:
-            IxLoadUtils.waitForTestToReachUnconfiguredState(self.api.connection, self.api.session_url)
+        IxLoadUtils.waitForTestToReachUnconfiguredState(self.api.connection, self.api.session_url)
 
     def release_test(self):
         self.command('releaseConfigWaitFinish')
@@ -162,33 +134,19 @@ class IxlRepository(IxlObject):
         return super(self.__class__, self)._create(name=self._data.get('name', None))
 
     def load_test(self, name='Test1', force_port_ownership=False):
-        if type(self.api) == IxlTclWrapper:
-            tests = self.get_children('testList')
-        else:
-            test = IxlObject(parent=self, objType='tests', objRef=self.ref + '/test/activeTest')
-            test.get_name()
-            tests = [test]
+        test = IxlObject(parent=self, objType='tests', objRef=self.ref + '/test/activeTest')
+        test.get_name()
+        tests = [test]
 
         for test in tests:
             if test.obj_name() == name:
                 self.test = test
                 self.test.set_attributes(enableForceOwnership=force_port_ownership)
                 break
-        if type(self.api) == IxlTclWrapper:
-            for scenario in self.test.get_children('scenarioList'):
-                for column in scenario.get_children('columnList'):
-                    column.get_children('elementList')
-        else:
-            self.test.get_children('communityList')
+        self.test.get_children('communityList')
 
     def get_elements(self):
-        elements = {}
-        if type(self.api) == IxlTclWrapper:
-            for scenario in self.test.get_objects_by_type('scenario'):
-                for column in scenario.get_objects_by_type('column'):
-                    elements.update({o.obj_name(): o for o in column.get_objects_by_type('element')})
-        else:
-            elements = {o.obj_name(): o for o in self.test.get_objects_by_type('community')}
+        elements = {o.obj_name(): o for o in self.test.get_objects_by_type('community')}
         return elements
 
     def save_config(self, name):

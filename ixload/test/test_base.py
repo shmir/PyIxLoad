@@ -22,7 +22,7 @@ class IxlTestBase(TgnTest):
 
     def setUp(self):
         super(IxlTestBase, self).setUp()
-        self.ixl = init_ixl(ApiType[self.config.get('IXL', 'api')], self.logger, self.config.get('IXL', 'install_dir'))
+        self.ixl = init_ixl(self.logger)
         self.ixl.connect(self.config.get('IXL', 'version'), self.config.get('IXL', 'server_ip'),
                          self.config.get('IXL', 'server_port'))
 
