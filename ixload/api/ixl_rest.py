@@ -73,3 +73,28 @@ class IxlRestWrapper(object):
             pass
         elif command == 'setResultDir':
             self.config(obj_ref + '/ixload/test', outputDir=True, runResultDirFull=str(arguments[0]))
+
+
+class IxlList(object):
+
+    def __init__(self, parent, name):
+        self.parent = parent
+        self.name = name
+
+    def get_index_count(self):
+        return int(self.parent.command(self.name + 'List.indexCount'))
+
+    def get_items(self):
+        items = []
+        for item_id in range(self.get_index_count()):
+            items.append(self.get_item(item_id))
+        return items
+
+    def get_item(self, item_id):
+        return self.parent.command(self.name + 'List.getItem', item_id)
+
+    def clear(self):
+        self.parent.command(self.name + 'List.clear')
+
+    def append(self, **attributes):
+        self.parent.command(self.name + 'List.appendItem', **attributes)

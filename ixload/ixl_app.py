@@ -7,9 +7,9 @@ Classes and utilities to manage IxLoad application.
 import logging
 
 from trafficgenerator.tgn_app import TgnApp
-from ixload.api import IxLoadUtils
 
-from ixload.api.ixl_rest import IxlRestWrapper
+from ixload.api import IxLoadUtils
+from ixload.api.ixl_rest import IxlRestWrapper, IxlList
 from ixload.ixl_object import IxlObject
 from ixload.ixl_hw import IxlChassisChain
 
@@ -170,8 +170,9 @@ class IxlElement(IxlObject):
 class IxlCommunity(IxlObject):
 
     def reserve(self, location):
-        chassis, cardId, portId = location.split('/')
-        chassisId = self.repository.cc.append(chassis)
+        ip, cardId, portId = location.split('/')
+        chassis = self.repository.cc.append(ip)
+        chassisId = chassis.get_attribute('id')
         IxLoadUtils.assignPorts(self.api.connection, self.api.session_url, {self.name: [(chassisId, cardId, portId)]})
 
 

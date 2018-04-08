@@ -21,7 +21,7 @@ class IxlTestOnline(IxlTestBase):
     ports = []
 
     def testReservePorts(self):
-        self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
+        self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config_840.rxf'))
 
     def testRunTest(self):
         self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
@@ -64,11 +64,6 @@ class IxlTestOnline(IxlTestBase):
 
     def testReport(self):
         print self.ixl.controller.create_report()
-
-    def testInventory(self):
-        chassis = self.config.get('IXL', 'Traffic1@Network1').split('/')[0]
-        self.ixl.new_config()
-        self.ixl.repository.cc.append(chassis)
 
     def _reserve_ports(self, config_file):
         self._load_config(config_file)

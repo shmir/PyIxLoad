@@ -97,3 +97,4 @@ test*.rxf
 ixload/test/logs
 
 .idea
+.pytest_cache

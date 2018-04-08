@@ -15,12 +15,11 @@ class IxlChassisChain(IxlObject):
     def clear(self):
         self.api.clear_chassis_chain(self.ref)
 
-    def append(self, chassis):
-        chassis_list = self.get_children('chassisList')
-        chassis_id = 0
-        for index, name in enumerate(chassis_list):
-            if name == chassis:
-                chassis_id = index + 1
-        if not chassis_id:
-            chassis_id = IxLoadUtils.addChassisList(self.api.connection, self.api.session_url, [chassis])[0]
-        return chassis_id
+    def append(self, ip):
+        chassis_list = self.get_objects_or_children_by_type('chassisList')
+        for chassis in chassis_list:
+            if chassis.name == ip:
+                return chassis
+        chassis_id = IxLoadUtils.addChassisList(self.api.connection, self.api.session_url, [ip])[0]
+        return IxlObject(parent=self, objRef=self.ref + '/chassisList/' + chassis_id, objType='chassisList',
+                         name=ip)
