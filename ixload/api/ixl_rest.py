@@ -37,31 +37,36 @@ class IxlRestWrapper(object):
                 IxLoadUtils.loadRepository(self.connection, self.session_url, attributes['name'])
             return self.session_url + '/ixload'
 
-    def cget(self, obj_ref, attribute):
+    def cget(self, obj_ref, attribute=None):
         response = self.connection.httpGet(obj_ref)
-        return response.jsonOptions.get(attribute, None)
-
-    def cgetList(self, obj_ref, attribute):
-        response = self.connection.httpGet()
-        a = self.cget(obj_ref, attribute)
-        return a
+        if attribute:
+            return response.jsonOptions.get(attribute, None)
+        else:
+            response.jsonOptions.pop('links')
+            return response.jsonOptions
 
     def config(self, obj_ref, **attributes):
         IxLoadUtils.performGenericPatch(self.connection, obj_ref, attributes)
 
-    def get_children(self, parent, child_type):
+    def get_children(self, parent, child_type=None):
         """ Read (getList) children from IXN.
 
-        :param parent: parent object .
+        :param parent: parent object or reference.
         :param child_type: requested child type.
         :return: list of all children objects of the requested types.
         """
 
-        if child_type.endswith('List'):
-            child_ref = parent.ref + '/' + child_type
-            return [child_ref + '/' + str(o.objectID) for o in self.connection.httpGet(child_ref)]
+        parent_ref = parent if type(parent) is str else parent.ref
+        if child_type:
+            if child_type.endswith('List'):
+                child_ref = parent_ref + '/' + child_type
+                return [child_ref + '/' + str(o.objectID) for o in self.connection.httpGet(child_ref)]
+            else:
+                return [parent_ref + '/' + child_type]
         else:
-            return [parent.ref + '/' + child_type]
+            links = self.cget(parent, 'links')
+            if links:
+                return [parent_ref + '/' + link.jsonOptions['rel'] for link in links]
 
     def clear_chassis_chain(self, obj_ref):
         IxLoadUtils.clearChassisList(self.connection, self.session_url)

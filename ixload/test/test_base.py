@@ -10,7 +10,6 @@ Base class for all IxLoad package tests.
 from os import path
 import inspect
 
-from trafficgenerator.tgn_utils import ApiType
 from trafficgenerator.test.test_tgn import TgnTest
 
 from ixload.ixl_app import init_ixl

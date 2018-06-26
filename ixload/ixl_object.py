@@ -49,13 +49,6 @@ class IxlObject(TgnObject):
 
         return self.api.cget(self.obj_ref(), attribute)
 
-    def get_list_attribute(self, attribute):
-        """
-        :return: attribute value as Python list.
-        """
-
-        return self.api.cgetList(self.obj_ref(), attribute)
-
     def get_children(self, *types):
         """ Read (getList) children from IXN.
 
