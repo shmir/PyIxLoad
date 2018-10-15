@@ -3,4 +3,4 @@ configparser
 pytest-runner
 requests
 
-pytrafficgen==1.2.2
+pytrafficgen==1.5.1
