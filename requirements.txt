@@ -3,4 +3,5 @@ configparser
 pytest-runner
 requests
 
-tgnooapi>=1.1.0
+pytrafficgen==1.5.1
+

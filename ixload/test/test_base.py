@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# encoding: utf-8
-
 """
 Base class for all IxLoad package tests.
 
@@ -9,26 +6,28 @@ Base class for all IxLoad package tests.
 
 from os import path
 import inspect
+import time
 
 from trafficgenerator.tgn_utils import ApiType
-from trafficgenerator.test.test_tgn import TgnTest
+from trafficgenerator.test.test_tgn import TestTgnBase
 
 from ixload.ixl_app import init_ixl
 
 
-class IxlTestBase(TgnTest):
+class TestIxlBase(TestTgnBase):
 
-    TgnTest.config_file = path.join(path.dirname(__file__), 'IxLoad.ini')
+    TestTgnBase.config_file = path.join(path.dirname(__file__), 'IxLoad.ini')
 
-    def setUp(self):
-        super(IxlTestBase, self).setUp()
+    def setup(self):
+        super(TestIxlBase, self).setup()
         self.ixl = init_ixl(ApiType[self.config.get('IXL', 'api')], self.logger, self.config.get('IXL', 'install_dir'))
         self.ixl.connect(self.config.get('IXL', 'version'), self.config.get('IXL', 'server_ip'),
                          self.config.get('IXL', 'server_port'))
 
-    def tearDown(self):
-        super(IxlTestBase, self).tearDown()
+    def teardown(self):
+        super(TestIxlBase, self).teardown()
         self.ixl.disconnect()
+        time.sleep(8)
 
     def testHelloWorld(self):
         pass
@@ -43,12 +42,3 @@ class IxlTestBase(TgnTest):
     def _save_config(self):
         test_name = inspect.stack()[1][3]
         self.ixl.save_config(path.join(path.dirname(__file__), 'configs', test_name + '.rxf'))
-
-if __name__ == '__main__':
-    import sys
-    import unittest
-    from StringIO import StringIO
-    stream = StringIO()
-    runner = unittest.TextTestRunner(stream=stream)
-    result = runner.run(unittest.makeSuite(IxlTestBase, 'testHelloWorld'))
-    sys.exit(result)
