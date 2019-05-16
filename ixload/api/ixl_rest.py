@@ -3,17 +3,11 @@
 """
 
 from os import path
-from sys import platform
 import time
 import requests
 
 from trafficgenerator.tgn_utils import TgnError
 from trafficgenerator.tgn_tcl import get_args_pairs
-
-if platform == 'win32':
-    utils_sub_dir = 'RestScripts/Utils'
-else:
-    utils_sub_dir = 'lib/IxTclNetwork/pkgIndex.tcl'
 
 
 class IxlRestWrapper(object):
@@ -31,8 +25,8 @@ class IxlRestWrapper(object):
         response = command(url, **kwargs)
         self.logger.debug('{}'.format(response))
         if response.status_code == 400:
-            raise TgnError('failed to {} {} {} - status code {}'.
-                           format(command.__name__, url, kwargs, response.status_code))
+            raise TgnError('failed to {} {} {} - status code {}\n{}'.
+                           format(command.__name__, url, kwargs, response.status_code, response.text))
         return response
 
     def stripApiAndVersionFromURL(self, url):
@@ -51,9 +45,16 @@ class IxlRestWrapper(object):
 
             while not actionFinished:
                 actionStatusObj = self.get(self.server_url + actionResultURL)
+                self.logger.info(actionStatusObj.state.lower())
 
-                if actionStatusObj.state.lower() == 'finished':
-                    if actionStatusObj.status.lower() == 'successful':
+                if self.version > '8.50':
+                    status = not (actionStatusObj.state.lower() == 'in_progress')
+                    actionStatusObj.status = actionStatusObj.state
+                else:
+                    status = (actionStatusObj.state.lower() == 'finished')
+
+                if status:
+                    if 'success' in actionStatusObj.status.lower():
                         actionFinished = True
                     else:
                         errorMsg = "Error while executing action '%s'." % actionUrl
@@ -71,7 +72,7 @@ class IxlRestWrapper(object):
         return self.request(requests.post, url, json=data)
 
     def delete(self, url):
-        return self.request(requests.delete, url)
+        return self.request(requests.delete, url, headers={'Content-Type': 'application/json'})
 
     def operation(self, url, data=None):
         response = self.post(url, data)
@@ -83,11 +84,12 @@ class IxlRestWrapper(object):
     #
 
     def connect(self, ip, port, version):
+        self.version = version
         self.server_url = 'http://{}:{}/api/'.format(ip, port)
-        response = self.post(self.server_url + 'v0/sessions', {"ixLoadVersion": version})
+        response = self.post(self.server_url + 'v1/sessions', {"applicationVersion": version})
         session_id = response.headers['location'].split('/')[-1]
-        self.session_url = self.server_url + 'v0/sessions/' + session_id
-        response = self.operation(self.session_url + '/operations/start', {})
+        self.session_url = self.server_url + 'v1/sessions/' + session_id
+        self.operation(self.session_url + '/operations/start', {})
 
     def disconnect(self):
         self.delete(self.session_url)
@@ -96,7 +98,7 @@ class IxlRestWrapper(object):
         if obj_type == 'ixTestController':
             return self.session_url + '/ixload'
         elif obj_type == 'ixRepository':
-            resource_url = self.api_url + 'resources'
+            resource_url = self.session_url + 'resources'
             upload_path = 'c:/temp/ixLoadGatewayUploads' + path.split(attributes['name'])[1]
             self.IxLoadUtils.uploadFile(self.connection, resource_url, attributes['name'], upload_path)
             self.IxLoadUtils.loadRepository(self.connection, self.session_url, upload_path)

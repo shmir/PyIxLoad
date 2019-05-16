@@ -1,5 +1,6 @@
 future
 configparser
+pytest
 pytest-runner
 requests
 

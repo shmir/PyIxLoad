@@ -32,7 +32,7 @@ class TestIxlOnline(TestIxlBase):
         assert(client_stats.get_stat(16, 'TCP SYN Sent/s') > 0)
 
     def testRerunTest(self):
-        self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
+        self._reserve_ports(path.join(path.dirname(__file__), 'configs/bhrtest.rxf'))
         self.ixl.controller.set_results_dir('C:/temp/IxLoad')
         self.ixl.start_test(blocking=False)
         self.ixl.stop_test()

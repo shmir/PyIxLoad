@@ -8,7 +8,6 @@ from os import path
 import inspect
 import time
 
-from trafficgenerator.tgn_utils import ApiType
 from trafficgenerator.test.test_tgn import TestTgnBase
 
 from ixload.ixl_app import init_ixl
@@ -20,9 +19,8 @@ class TestIxlBase(TestTgnBase):
 
     def setup(self):
         super(TestIxlBase, self).setup()
-        self.ixl = init_ixl(ApiType[self.config.get('IXL', 'api')], self.logger, self.config.get('IXL', 'install_dir'))
-        self.ixl.connect(self.config.get('IXL', 'version'), self.config.get('IXL', 'server_ip'),
-                         self.config.get('IXL', 'server_port'))
+        self.ixl = init_ixl(self.api, self.logger, self.config.get('IXL', 'install_dir'))
+        self.ixl.connect(self.config.get('IXL', 'version'), self.server_ip, self.server_port)
 
     def teardown(self):
         super(TestIxlBase, self).teardown()
