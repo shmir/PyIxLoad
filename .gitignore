@@ -93,7 +93,6 @@ ENV/
 
 *.pyc
 *-save.*
-test*.rxf
 ixload/test/logs
 
 .idea
