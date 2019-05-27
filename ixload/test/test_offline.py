@@ -15,7 +15,7 @@ class TestIxlOffline(TestIxlBase):
         """ Test configuration load. """
         self.logger.info(TestIxlOffline.test_load_config.__doc__)
 
-        self._load_config(path.join(path.dirname(__file__), 'configs/bhrtest.rxf'))
+        self._load_config(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
         print(self.ixl.repository.get_elements())
 
         self._save_config()

@@ -17,10 +17,9 @@ logger = None
 
 
 # Gets a Connection instance, that will be used to make the HTTP requests to the application
-def getConnection(server, port):
-    connectionUrl = 'http://{}:{}/'.format(server, port)
-    conn = Connection(connectionUrl, "v0")
-    return conn
+def getConnection(server, port, api_version, ixload_version):
+    connection_url = 'http://{}:{}/'.format(server, port)
+    return Connection(connection_url, api_version, ixload_version)
 
 
 # Converts a given python dict instance to a string JSON payload that can be sent to a REST API.
@@ -50,19 +49,29 @@ class Connection(object):
     kHeaderContentType = "content-type"
     kContentJson = "application/json"
 
-    def __init__(self, siteUrl, apiVersion):
+    def __init__(self, siteUrl, api_version='v1', ixload_version=None):
         '''
             Args:
             - siteUrl is the actual url to which the Connection instance will be made.
-            - apiVersion is the actual version of the REST API that the Connection instance will use.
+            - api_version is the actual version of the REST API that the Connection instance will use.
 
             The HTTP session will be created when the first http request is made.
         '''
 
+        self.api_version = api_version
         self.httpSession = None
-        # final url for the connection will have the format: "http://IP:PORT/api/versionNo"
+        # final url for the connection will have the format: "http://IP:PORT/api/api_version"
         self.url = Connection.urljoin(siteUrl, "api")
-        self.url = Connection.urljoin(self.url, apiVersion)
+        self.url = Connection.urljoin(self.url, self.api_version)
+
+        if ixload_version:
+            self.ixload_version = ixload_version
+        else:
+            app_types = self.httpGet('applicationTypes')
+            if self.api_version == 'v1':
+                self.ixload_version = str(app_types[-1].appName)
+            else:
+                self.ixload_version = str(app_types[-1].appName)
 
     def _getHttpSession(self):
         '''
@@ -105,9 +114,11 @@ class Connection(object):
         absUrl = Connection.urljoin(self.url, url)
         logger.debug('method={}, absUrl={}, data={}, params={}, headers={}'.
                      format(method, absUrl, data, params, headers))
-        result = self._getHttpSession().request(method, absUrl, data=str(data), params=params, headers=headers)
-        logger.debug('code={}, ok={}, text={}'.format(result, result.ok, result.text))
-        return result
+        response = self._getHttpSession().request(method, absUrl, data=str(data), params=params, headers=headers)
+        logger.debug('code={}, ok={}, text={}'.format(response, response.ok, response.text))
+        if not response.ok:
+            raise Exception(response.text)
+        return response
 
     def httpGet(self, url="", data="", params={}, headers={}):
         '''

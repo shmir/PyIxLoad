@@ -1,6 +1,9 @@
 
 import time
+import re
+import requests
 
+from trafficgenerator.tgn_utils import TgnError
 from IxRestUtils import formatDictToJSONPayload
 
 
@@ -12,7 +15,7 @@ kTestStateUnconfigured = 'Unconfigured'
 logger = None
 
 
-def waitForActionToFinish(connection, replyObj, actionUrl):
+def waitForActionToFinish(connection, replyObj, action_url):
     '''
         This method waits for an action to finish executing. after a POST request is sent in order to start an action,
         The HTTP reply will contain, in the header, a 'location' field, that contains an URL.
@@ -23,27 +26,35 @@ def waitForActionToFinish(connection, replyObj, actionUrl):
         Args:
         - connection is the connection object that manages the HTTP data transfers between the client and the REST API
         - replyObj the reply object holding the location
-        - actionUrl - the url pointing to the operation
+        - action_url - URL of the original POST action
     '''
 
-    actionResultURL = replyObj.headers.get('location')
-    if actionResultURL:
-        actionResultURL = '/'.join(actionResultURL[1:].split('/')[2:])
-        actionFinished = False
+    action_result_url = replyObj.headers.get('location')
+    if action_result_url:
+        actionResultURL = '/'.join(action_result_url[1:].split('/')[2:])
+        finished = False
 
-        while not actionFinished:
-            actionStatusObj = connection.httpGet(actionResultURL)
-
-            if actionStatusObj.state == kActionStateFinished:
-                if actionStatusObj.status == kActionStatusSuccessful:
-                    actionFinished = True
-                else:
-                    errorMsg = "Error while executing action '%s'. " % actionUrl
-                    if actionStatusObj.status == kActionStatusError:
-                        errorMsg += actionStatusObj.error
-                    raise Exception(errorMsg)
+        while not finished:
+            time.sleep(1)
+            action_status = connection.httpGet(actionResultURL)
+            if connection.api_version == 'v1':
+                finished = (action_status.progress == 100)
+                success = action_status.state.lower() == 'success'
             else:
-                time.sleep(1)
+                finished = (action_status.state.lower() == 'finished')
+                success = (action_status.status.lower() == 'successful')
+
+        if not success:
+            error_msg = 'Error while executing {}. '.format(action_url)
+            if hasattr(action_status, 'errorMessage'):
+                error_msg += action_status.errorMessage
+            elif hasattr(action_status, 'error'):
+                error_msg += action_status.error
+            elif hasattr(action_status, 'warning'):
+                error_msg += action_status.warning
+            elif hasattr(action_status, 'message'):
+                error_msg += action_status.message
+            raise TgnError(error_msg)
 
 
 def performGenericOperation(connection, url, payloadDict):
@@ -54,12 +65,12 @@ def performGenericOperation(connection, url, payloadDict):
         - connection is the connection object that manages the HTTP data transfers between the client and the REST API
         - url is the address of where the operation will be performed
         - payloadDict is the python dict with the parameters for the operation
+        Returns:
+        - reply of the operation POST command
     '''
     data = formatDictToJSONPayload(payloadDict)
     reply = connection.httpPost(url=url, data=data)
-
     waitForActionToFinish(connection, reply, url)
-
     return reply
 
 
@@ -75,9 +86,6 @@ def performGenericPost(connection, listUrl, payloadDict):
     data = formatDictToJSONPayload(payloadDict)
 
     reply = connection.httpPost(url=listUrl, data=data)
-    if reply.status_code >= 400:
-        raise Exception(reply.text)
-
     newObjPath = reply.headers['location']
 
     newObjID = newObjPath.split('/')[-1]
@@ -95,7 +103,7 @@ def performGenericDelete(connection, listUrl, payloadDict):
     '''
     data = formatDictToJSONPayload(payloadDict)
 
-    reply = connection.httpDelete(url=listUrl, data=data)
+    reply = connection.httpDelete(url=listUrl, data=data, headers={})
     return reply
 
 
@@ -116,27 +124,21 @@ def performGenericPatch(connection, url, payloadDict):
     return reply
 
 
-def createSession(connection, ixLoadVersion):
+def createSession(connection):
     '''
         This method is used to create a new session. It will return the url of the newly created session
 
         Args:
         - connection is the connection object that manages the HTTP data transfers between the client and the REST API
-        - ixLoadVersion this is the actual IxLoad Version to start
     '''
 
-    sessionsUrl = "sessions"
-    data = {"ixLoadVersion": ixLoadVersion}
-
-    sessionId = performGenericPost(connection, sessionsUrl, data)
-
-    newSessionUrl = "%s/%s" % (sessionsUrl, sessionId)
-    startSessionUrl = "%s/operations/start" % (newSessionUrl)
-
-    # start the session
-    performGenericOperation(connection, startSessionUrl, {})
-
-    return newSessionUrl
+    if connection.api_version == 'v1':
+        data = {"applicationVersion": connection.ixload_version}
+    else:
+        data = {"ixLoadVersion": connection.ixload_version}
+    session_id = performGenericPost(connection, 'sessions', data)
+    performGenericOperation(connection, 'sessions/{}/operations/start'.format(session_id), {})
+    return 'sessions/{}'.format(session_id)
 
 
 def deleteSession(connection, sessionUrl):
@@ -161,10 +163,11 @@ def loadRepository(connection, sessionUrl, rxfFilePath):
         - rxfFilePath is the local rxf path on the machine that holds the IxLoad instance
     '''
 
+    if 'localhost' not in connection.url and '127.0.0.1' not in connection.url:
+        rxfFilePath = uploadFile(connection, rxfFilePath)
     loadTestUrl = "%s/ixload/test/operations/loadTest" % (sessionUrl)
     data = {"fullPath": rxfFilePath}
     performGenericOperation(connection, loadTestUrl, data)
-
 
 def saveRxf(connection, sessionUrl, rxfFilePath):
     '''
@@ -383,13 +386,13 @@ def getIPRangeListUrlForNetworkObj(connection, networkUrl):
     else:
         for link in networkObj.links:
             if link.rel == 'rangeList':
-                rangeListUrl = link.href.replace("/api/v0/", "")
+                rangeListUrl = re.sub("/api/v0/", "/", link.href)
                 return rangeListUrl
 
         for link in networkObj.links:
             if link.rel == 'childrenList':
                 # remove the 'api/v0' elements of the url, since they are not needed for connection http get
-                childrenListUrl = link.href.replace("/api/v0/", "")
+                childrenListUrl = re.sub("/api/v0/", "/", link.href)
 
                 return getIPRangeListUrlForNetworkObj(connection, childrenListUrl)
 
@@ -448,7 +451,7 @@ def getCommandListUrlForAgentName(connection, sessionUrl, agentName):
 
                 for link in agent.links:
                     if link.rel in ['actionList', 'commandList']:
-                        commandListUrl = link.href.replace("/api/v0/", "")
+                        commandListUrl = re.sub("/api/v0/", "/", link.href)
                         return commandListUrl
 
 
@@ -508,3 +511,13 @@ def changeActivityOptions(connection, sessionUrl, activityOptionsToChange):
             if activity.name in activityOptionsToChange.keys():
                 activityUrl = "%s/%s" % (activityListUrl, activity.objectID)
                 performGenericPatch(connection, activityUrl, activityOptionsToChange[activity.name])
+
+
+def uploadFile(connection, fileName, overwrite=True):
+    headers = {'Content-Type': 'multipart/form-data'}
+    uploadPath = fileName.replace(':', '').replace('\\', '/')
+    uploadPath = 'aaaa.rxf'
+    params = {'overwrite': overwrite, 'uploadPath': uploadPath}
+    with open(fileName, 'rb') as f:
+        connection.httpPost('resources', data=f, params=params, headers=headers)
+    return '{}'.format(uploadPath)

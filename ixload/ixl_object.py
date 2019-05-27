@@ -15,7 +15,7 @@ class IxlObject(TgnObject):
     str_2_class = {}
 
     def __init__(self, **data):
-        if data['parent']:
+        if data['parent'] and hasattr(data['parent'], 'repository'):
             self.repository = data['parent'].repository
         super(IxlObject, self).__init__(**data)
 
@@ -41,13 +41,20 @@ class IxlObject(TgnObject):
     def set_attributes(self, **attributes):
         self.api.config(self.obj_ref(), **attributes)
 
-    def get_attribute(self, attribute):
+    def get_attributes(self):
         """
         :param attribute: requested attributes.
         :return: attribute value.
         """
+        return self.api.cget(self.ref)
 
-        return self.api.cget(self.obj_ref(), attribute)
+    def get_attribute(self, attribute):
+        """
+        :param attribute: requested attribute.
+        :return: attribute value.
+        """
+
+        return self.api.cget(self.ref, attribute)
 
     def get_children(self, *types):
         """ Read (getList) children from IXN.

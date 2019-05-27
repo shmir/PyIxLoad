@@ -24,20 +24,20 @@ class TestIxlOnline(TestIxlBase):
         """ Test port reservation. """
         self.logger.info(TestIxlOnline.test_reserve_ports.__doc__)
 
-        self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config_840.rxf'))
+        self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
 
     def test_run_test(self):
         """ Test run in blocking mode. """
         self.logger.info(TestIxlOnline.test_run_test.__doc__)
 
-        self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config_840.rxf'))
+        self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
         self.ixl.start_test(blocking=True)
 
     def test_run_stop_test(self):
         """ Test run in non-blocking mode and stop. """
         self.logger.info(TestIxlOnline.test_run_stop_test.__doc__)
 
-        self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config_840.rxf'))
+        self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
         self.ixl.start_test(blocking=False)
         time.sleep(8)
         self.ixl.stop_test()
@@ -46,7 +46,7 @@ class TestIxlOnline(TestIxlBase):
         """ Test run and statistics. """
         self.logger.info(TestIxlOnline.test_run_stop_test.__doc__)
 
-        self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config_840.rxf'))
+        self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
         self.ixl.controller.set_results_dir('C:/temp/IxLoad')
         self.ixl.start_test(blocking=True)
         client_stats = IxlStatView('Test_Client')
@@ -58,7 +58,7 @@ class TestIxlOnline(TestIxlBase):
         """ Test re-run test. """
         self.logger.info(TestIxlOnline.test_run_stop_test.__doc__)
 
-        self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config_840.rxf'))
+        self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
         self.ixl.controller.set_results_dir('C:/temp/IxLoad')
         self.ixl.start_test(blocking=False)
         self.ixl.stop_test()

@@ -4,6 +4,7 @@ Classes and utilities to manage IxLoad application.
 @author yoram@ignissoft.com
 """
 
+import os
 import logging
 
 from trafficgenerator.tgn_app import TgnApp
@@ -12,6 +13,9 @@ from ixload.api import IxLoadUtils
 from ixload.api.ixl_rest import IxlRestWrapper, IxlList
 from ixload.ixl_object import IxlObject
 from ixload.ixl_hw import IxlChassisChain
+
+
+RESULTS_DIR = 'c:/temp/IxLoadResults' if os.name == 'nt' else '/tmp/IxLoadResults'
 
 
 def init_ixl(logger=None):
@@ -46,15 +50,15 @@ class IxlApp(TgnApp):
         IxlObject.api = self.api
         IxlObject.str_2_class = TYPE_2_OBJECT
 
-    def connect(self, version=None, ip='localhost', port=8080):
+    def connect(self, version, ip='localhost', port=8080):
         """ Connect to IxTcl/REST server.
 
-        :param version: IxLoad version, ignored for IxTcl server.
-        :param server: IxTcl/REST server.
-        :param port: REST port, ignored for IxTcl server.
+        :param version: IxLoad chassis version
+        :param server: EST server.
+        :param port: REST port.
         """
 
-        self.api.connect(ip, port, version)
+        self.api.connect(version, ip, port)
         IxlApp.controller = IxlController()
 
     def disconnect(self):
@@ -87,7 +91,9 @@ class IxlController(IxlObject):
         data['objType'] = 'ixTestController'
         data['parent'] = None
         super(self.__class__, self).__init__(**data)
-        self.set_results_dir(data.get('resultsDir', 'c:/temp/IxLoadResults'))
+        self.set_results_dir(data.get('resultsDir', RESULTS_DIR))
+        preferences = IxlObject(parent=self, objRef=self.ref + '/ixload/preferences', objType='preferences')
+        print('licenseServer = {}'.format(preferences.get_attributes()['licenseServer']))
 
     def set_results_dir(self, results_dir):
         self.results_dir = results_dir
@@ -139,7 +145,7 @@ class IxlRepository(IxlObject):
         tests = [test]
 
         for test in tests:
-            if test.obj_name() == name:
+            if test.name == name:
                 self.test = test
                 self.test.set_attributes(enableForceOwnership=force_port_ownership)
                 break
