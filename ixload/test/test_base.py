@@ -18,7 +18,7 @@ class TestIxlBase(TestTgnBase):
     def setup(self):
         super(TestIxlBase, self).setup()
         self.ixl = init_ixl(self.logger)
-        self.ixl.connect(self.version, self.server_ip, self.server_port)
+        self.ixl.connect(self.version, self.server_ip, self.crt_file)
 
     def teardown(self):
         self.ixl.disconnect()

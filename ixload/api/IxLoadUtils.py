@@ -520,4 +520,4 @@ def uploadFile(connection, fileName, overwrite=True):
     params = {'overwrite': overwrite, 'uploadPath': uploadPath}
     with open(fileName, 'rb') as f:
         connection.httpPost('resources', data=f, params=params, headers=headers)
-    return '{}'.format(uploadPath)
+    return '/mnt/ixload-share/{}'.format(uploadPath)

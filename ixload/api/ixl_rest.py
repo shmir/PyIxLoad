@@ -22,9 +22,10 @@ class IxlRestWrapper(object):
     # IxLoad built in commands ordered alphabetically.
     #
 
-    def connect(self, version, ip, port=8080):
+    def connect(self, version, ip, crt_file=None):
         api_version = 'v1' if version > '8.5' else 'v0'
-        self.connection = IxRestUtils.getConnection(str(ip), str(port), api_version, version)
+        connection_url = 'https://{}:8443/'.format(ip) if api_version == 'v1' else 'http://{}:8080/'.format(ip)
+        self.connection = IxRestUtils.Connection(connection_url, api_version, version, crt_file)
         self.session_url = IxLoadUtils.createSession(self.connection)
 
     def disconnect(self):

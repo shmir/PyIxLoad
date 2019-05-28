@@ -97,3 +97,5 @@ ixload/test/logs
 
 .idea
 .pytest_cache
+
+*.crt
