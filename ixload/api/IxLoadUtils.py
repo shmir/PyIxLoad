@@ -515,8 +515,7 @@ def changeActivityOptions(connection, sessionUrl, activityOptionsToChange):
 
 def uploadFile(connection, fileName, overwrite=True):
     headers = {'Content-Type': 'multipart/form-data'}
-    uploadPath = fileName.replace(':', '').replace('\\', '/')
-    uploadPath = 'aaaa.rxf'
+    uploadPath = fileName.replace(':', '').replace('\\', '/').lstrip('/')
     params = {'overwrite': overwrite, 'uploadPath': uploadPath}
     with open(fileName, 'rb') as f:
         connection.httpPost('resources', data=f, params=params, headers=headers)
