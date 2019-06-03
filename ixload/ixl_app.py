@@ -50,7 +50,7 @@ class IxlApp(TgnApp):
         IxlObject.api = self.api
         IxlObject.str_2_class = TYPE_2_OBJECT
 
-    def connect(self, version, ip='localhost', crt_file=None):
+    def connect(self, version, ip='localhost', crt_file=None, license_server='localhost'):
         """ Connect to IxTcl/REST server.
 
         :param version: IxLoad chassis version
@@ -59,7 +59,7 @@ class IxlApp(TgnApp):
         """
 
         self.api.connect(version, ip, crt_file)
-        IxlApp.controller = IxlController()
+        IxlApp.controller = IxlController(licenseServer=license_server)
 
     def disconnect(self):
         """ Disconnect from chassis and server. """
@@ -93,7 +93,8 @@ class IxlController(IxlObject):
         super(self.__class__, self).__init__(**data)
         self.set_results_dir(data.get('resultsDir', RESULTS_DIR))
         preferences = IxlObject(parent=self, objRef=self.ref + '/ixload/preferences', objType='preferences')
-        print('licenseServer = {}'.format(preferences.get_attributes()['licenseServer']))
+        if not preferences.get_attributes()['licenseServer']:
+            preferences.set_attributes(licenseServer=data.get('licenseServer', 'localhost'))
 
     def set_results_dir(self, results_dir):
         self.results_dir = results_dir

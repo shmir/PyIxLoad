@@ -6,10 +6,10 @@ IxLoad package tests that can run in offline mode.
 
 from os import path
 
-from ixload.test.test_base import TestIxlBase
+import ixload.test.test_base
 
 
-class TestIxlOffline(TestIxlBase):
+class TestIxlOffline(ixload.test.test_base.TestIxlBase):
 
     def test_load_config(self):
         """ Test configuration load. """

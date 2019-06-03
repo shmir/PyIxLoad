@@ -169,6 +169,7 @@ def loadRepository(connection, sessionUrl, rxfFilePath):
     data = {"fullPath": rxfFilePath}
     performGenericOperation(connection, loadTestUrl, data)
 
+
 def saveRxf(connection, sessionUrl, rxfFilePath):
     '''
         This method saves the current rxf to the disk of the machine on which the IxLoad instance is running.
@@ -177,6 +178,9 @@ def saveRxf(connection, sessionUrl, rxfFilePath):
         - sessionUrl is the address of the session to save the rxf for
         - rxfFilePath is the location where to save the rxf on the machine that holds the IxLoad instance
     '''
+
+    if 'localhost' not in connection.url and '127.0.0.1' not in connection.url:
+        raise TgnError('Save configuration not supported on remote servers.')
     saveRxfUrl = "%s/ixload/test/operations/saveAs" % (sessionUrl)
     rxfFilePath = rxfFilePath.replace("\\", "\\\\")
     data = {"fullPath": rxfFilePath, "overWrite": 1}
@@ -513,10 +517,10 @@ def changeActivityOptions(connection, sessionUrl, activityOptionsToChange):
                 performGenericPatch(connection, activityUrl, activityOptionsToChange[activity.name])
 
 
-def uploadFile(connection, fileName, overwrite=True):
+def uploadFile(connection, filename, overwrite=True):
     headers = {'Content-Type': 'multipart/form-data'}
-    uploadPath = fileName.replace(':', '').replace('\\', '/').lstrip('/')
-    params = {'overwrite': overwrite, 'uploadPath': uploadPath}
-    with open(fileName, 'rb') as f:
-        connection.httpPost('resources', data=f, params=params, headers=headers)
+    uploadPath = filename.replace(':', '').replace('\\', '/').lstrip('/')
+    params = {'overwrite': overwrite, 'uploadPath': uploadPath, 'filename': filename}
+    with open(filename, 'rb') as f:
+        connection.httpPost('resources', data=f.read(), params=params, headers=headers)
     return '/mnt/ixload-share/{}'.format(uploadPath)
