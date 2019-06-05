@@ -1,10 +1,9 @@
 
 import time
 import re
-import requests
 
 from trafficgenerator.tgn_utils import TgnError
-from IxRestUtils import formatDictToJSONPayload
+from .IxRestUtils import formatDictToJSONPayload
 
 
 kActionStateFinished = 'finished'
@@ -179,8 +178,6 @@ def saveRxf(connection, sessionUrl, rxfFilePath):
         - rxfFilePath is the location where to save the rxf on the machine that holds the IxLoad instance
     '''
 
-    if 'localhost' not in connection.url and '127.0.0.1' not in connection.url:
-        raise TgnError('Save configuration not supported on remote servers.')
     saveRxfUrl = "%s/ixload/test/operations/saveAs" % (sessionUrl)
     rxfFilePath = rxfFilePath.replace("\\", "\\\\")
     data = {"fullPath": rxfFilePath, "overWrite": 1}

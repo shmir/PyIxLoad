@@ -2,8 +2,8 @@
 @author yoram@ignissoft.com
 """
 
-import IxRestUtils
-import IxLoadUtils
+
+from ixload.api import IxRestUtils, IxLoadUtils
 
 
 class IxlRestWrapper(object):

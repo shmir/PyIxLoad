@@ -11,7 +11,10 @@ Abstracting the RAW HTTP input / output to tangible objects that will act as an 
 
 import requests
 
-from urlparse import urljoin
+try:
+    from urlparse import urljoin
+except Exception:
+    from urllib.parse import urljoin
 
 logger = None
 
@@ -196,7 +199,7 @@ class WebObject(object):
             Create a WebObject instance by providing a dict having a property - value structure.
         '''
         self.jsonOptions = {}
-        for key, value in entries.iteritems():
+        for key, value in entries.items():
             webObj = _WebObject(value)
             self.jsonOptions[key] = webObj
             self.__dict__[key] = webObj
