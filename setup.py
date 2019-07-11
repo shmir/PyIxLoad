@@ -50,5 +50,5 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Topic :: Software Development :: Testing :: Traffic Generation'],
-    keywords='ixnetwork l2l3 test tool ixia automation',
+    keywords='ixload l4l7 test tool ixia automation',
 )
