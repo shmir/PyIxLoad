@@ -152,37 +152,66 @@ def deleteSession(connection, sessionUrl):
     performGenericDelete(connection, sessionUrl, deleteParams)
 
 
-def loadRepository(connection, sessionUrl, rxfFilePath):
-    '''
-        This method will perform a POST request to load a repository.
+def loadRepository(connection, sessionUrl, rxf_file_path):
+    """ Load test repository. In case of remote IxLoadGatware, copy the repository to the remote machine first.
 
-        Args:
-        - connection is the connection object that manages the HTTP data transfers between the client and the REST API
-        - sessionUrl is the address of the session to load the rxf for
-        - rxfFilePath is the local rxf path on the machine that holds the IxLoad instance
-    '''
+    todo: copy adjacent files to remote machine.
 
-    if 'localhost' not in connection.url and '127.0.0.1' not in connection.url:
-        rxfFilePath = uploadFile(connection, rxfFilePath)
-    loadTestUrl = "%s/ixload/test/operations/loadTest" % (sessionUrl)
-    data = {"fullPath": rxfFilePath}
-    performGenericOperation(connection, loadTestUrl, data)
+    :param connection: connection object that manages the HTTP data transfers between the client and the REST API
+    :param sessionUrl: address of the session to load the rxf for
+    :param rxf_file_path: the local rxf path on the machine that holds the IxLoad instance
+    """
+
+    load_test_url = '{}/ixload/test/operations/loadTest'.format(sessionUrl)
+    if connection.is_remote:
+        relative_file_path = upload_file(connection, rxf_file_path)
+        data = {'fullPath': '/mnt/ixload-share/{}'.format(relative_file_path)}
+    else:
+        data = {'fullPath': rxf_file_path}
+
+    try:
+        # try local / linux
+        performGenericOperation(connection, load_test_url, data)
+    except Exception as _:
+        # except it is windows
+        data = {'fullPath': 'C:/ProgramData/Ixia/IxLoadGateway/{}'.format(relative_file_path)}
+        performGenericOperation(connection, load_test_url, data)
 
 
-def saveRxf(connection, sessionUrl, rxfFilePath):
-    '''
-        This method saves the current rxf to the disk of the machine on which the IxLoad instance is running.
-        Args:
-        - connection is the connection object that manages the HTTP data transfers between the client and the REST API
-        - sessionUrl is the address of the session to save the rxf for
-        - rxfFilePath is the location where to save the rxf on the machine that holds the IxLoad instance
-    '''
+def saveRepository(connection, sessionUrl, rxf_file_path):
+    """ Save test repository. In case of remote IxLoadGatware, copy the repository from the remote machine.
 
-    saveRxfUrl = "%s/ixload/test/operations/saveAs" % (sessionUrl)
-    rxfFilePath = rxfFilePath.replace("\\", "\\\\")
-    data = {"fullPath": rxfFilePath, "overWrite": 1}
+    todo: copy adjacent files to remote machine.
 
-    performGenericOperation(connection, saveRxfUrl, data)
+    :param connection: connection object that manages the HTTP data transfers between the client and the REST API
+    :param sessionUrl: address of the session to load the rxf for
+    :param rxf_file_path: the local rxf path on the machine that holds the IxLoad instance
+    """
+
+    save_test_url = '{}/ixload/test/operations/saveAs'.format(sessionUrl)
+    if connection.is_remote:
+        relative_file_path = rxf_file_path.replace(':', '').replace('\\', '/').lstrip('/')
+        data = {"fullPath": '/mnt/ixload-share/{}'.format(relative_file_path), "overWrite": 1}
+    else:
+        data = {"fullPath": rxf_file_path, "overWrite": 1}
+
+    try:
+        # try load / linux
+        performGenericOperation(connection, save_test_url, data)
+    except Exception as _:
+        # except it is windows
+        data = {"fullPath": 'C:/ProgramData/Ixia/IxLoadGateway/{}'.format(relative_file_path), "overWrite": 1}
+        performGenericOperation(connection, save_test_url, data)
+
+    if connection.is_remote:
+        download_file(connection, rxf_file_path)
+
+
+def getCsv(connection, csv_file_path):
+    headers = {'content-type': 'multipart/form-data'}
+    params = {'localPath': csv_file_path}
+    reply = connection.httpRequest('GET', 'downloadResource', {}, params, headers)
+    return reply.text
 
 
 def runTest(connection, sessionUrl):
@@ -514,10 +543,25 @@ def changeActivityOptions(connection, sessionUrl, activityOptionsToChange):
                 performGenericPatch(connection, activityUrl, activityOptionsToChange[activity.name])
 
 
-def uploadFile(connection, filename, overwrite=True):
-    headers = {'Content-Type': 'multipart/form-data'}
+def upload_file(connection, filename, overwrite=True):
+    headers = {'content-type': 'multipart/form-data'}
     uploadPath = filename.replace(':', '').replace('\\', '/').lstrip('/')
     params = {'overwrite': overwrite, 'uploadPath': uploadPath, 'filename': filename}
     with open(filename, 'rb') as f:
-        connection.httpPost('resources', data=f.read(), params=params, headers=headers)
-    return '/mnt/ixload-share/{}'.format(uploadPath)
+        connection.httpPost('resources', data=f.read().decode('utf-8'), params=params, headers=headers)
+    return uploadPath
+
+
+def download_file(connection, filename):
+    relative_file_path = filename.replace(':', '').replace('\\', '/').lstrip('/')
+    headers = {'content-type': 'multipart/form-data'}
+    params = {'localPath': '/mnt/ixload-share/{}'.format(relative_file_path)}
+    try:
+        # try load / linux, do not use httpGet as it assumes json content.
+        reply = connection.httpRequest('GET', 'downloadResource', {}, params, headers)
+    except Exception as _:
+        # except it is windows
+        params = {'localPath': 'C:/ProgramData/Ixia/IxLoadGateway/{}'.format(relative_file_path)}
+        reply = connection.httpRequest('GET', 'downloadResource', {}, params, headers)
+    with open(filename, 'wb') as f:
+        f.write(reply.text)

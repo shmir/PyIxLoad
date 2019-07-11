@@ -50,7 +50,7 @@ class IxlApp(TgnApp):
         IxlObject.api = self.api
         IxlObject.str_2_class = TYPE_2_OBJECT
 
-    def connect(self, version, ip='localhost', crt_file=None, license_server='localhost'):
+    def connect(self, version, ip='localhost', auth=None):
         """ Connect to IxTcl/REST server.
 
         :param version: IxLoad chassis version
@@ -58,8 +58,8 @@ class IxlApp(TgnApp):
         :param crt: full path to crt file for v1 HTTPS connections.
         """
 
-        self.api.connect(version, ip, crt_file)
-        IxlApp.controller = IxlController(licenseServer=license_server)
+        self.api.connect(version, ip, auth)
+        IxlApp.controller = IxlController()
 
     def disconnect(self):
         """ Disconnect from chassis and server. """
@@ -92,13 +92,14 @@ class IxlController(IxlObject):
         data['parent'] = None
         super(self.__class__, self).__init__(**data)
         self.set_results_dir(data.get('resultsDir', RESULTS_DIR))
-        preferences = IxlObject(parent=self, objRef=self.ref + '/ixload/preferences', objType='preferences')
-        if not preferences.get_attributes()['licenseServer']:
-            preferences.set_attributes(licenseServer=data.get('licenseServer', 'localhost'))
 
     def set_results_dir(self, results_dir):
         self.results_dir = results_dir
         self.command('setResultDir', self.results_dir)
+
+    def set_licensing(self, licenseServer):
+        preferences = IxlObject(parent=self, objRef=self.ref + '/ixload/preferences', objType='preferences')
+        preferences.set_attributes(licenseServer=licenseServer)
 
     def start_test(self, test, blocking=True):
         IxLoadUtils.runTest(self.api.connection, self.api.session_url)
@@ -114,16 +115,6 @@ class IxlController(IxlObject):
 
     def release_test(self):
         self.command('releaseConfigWaitFinish')
-
-    def create_report(self, detailed=True):
-        """ Create detailed report under results directory.
-
-        :param detailed: True - detailed report, False - summary report.
-        :return: full path to report file.
-        """
-
-        self.command('generateReport', detailedReport=1)
-        return self.results_dir + ('IxLoad Detailed Report' if detailed else 'IxLoad Summary Report') + '/pdf'
 
 
 class IxlRepository(IxlObject):

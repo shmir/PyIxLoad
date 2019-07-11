@@ -9,21 +9,18 @@ import csv
 from collections import OrderedDict
 
 from ixload.ixl_app import IxlApp
+from ixload.api.IxLoadUtils import getCsv
 
 
 class IxlStatView(object):
 
-    def __init__(self, view, results_dir=None):
+    def __init__(self, view):
         """
         :param view: requested statistics view.
-        :param results_dir: results directory, default - controller results directory.
         """
 
         self.view = view
-        if not results_dir:
-            controller = IxlApp.controller
-            results_dir = controller.results_dir
-        self.results_dir = results_dir
+        self.controller = IxlApp.controller
 
     def read_stats(self):
         """ Reads the statistics view from the CSV file and saves it in statistics dictionary.
@@ -31,14 +28,16 @@ class IxlStatView(object):
         The original CSV file is saved in self.csv list so the test can access the raw data at any time.
         """
 
-        with open(path.join(self.results_dir.replace('\\', '/'), self.view + '.csv'), 'rb') as csvfile:
-            self.csv_reader = csv.reader(csvfile, delimiter=',', quotechar='|')
-            self.csv = []
-            for row in self.csv_reader:
-                self.csv.append(row)
+        csv_file_path = path.join(self.controller.results_dir, self.view + '.csv').replace('\\', '/')
+        if self.controller.api.connection.is_remote:
+            file_text = getCsv(self.controller.api.connection, csv_file_path)
+            csv_reader = csv.reader(file_text.split('\n'), delimiter=',', quotechar='|')
+        else:
+            with open(csv_file_path, 'rb') as f:
+                csv_reader = csv.reader([l.decode('utf-8') for l in f.readlines()], delimiter=',', quotechar='|')
 
         self.statistics = OrderedDict()
-        for row in self.csv:
+        for row in csv_reader:
             if row:
                 row_header = row.pop(0)
                 if row_header.replace('.', '').isdigit():

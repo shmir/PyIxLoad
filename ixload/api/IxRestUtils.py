@@ -38,32 +38,25 @@ def formatDictToJSONPayload(dictionary):
 
 
 class Connection(object):
-    '''
+    """
         Class that executes the HTTP requests to the application instance.
         It handles creating the HTTP session and executing HTTP methods.
+    """
 
-    '''
-    kHeaderContentType = "content-type"
-    kContentJson = "application/json"
-
-    def __init__(self, gw_url, api_version='v1', ixload_version=None, gw_crt=None):
-        """
-            Args:
-            - siteUrl
-            - api_version is the actual version of the REST API that the Connection instance will use.
-            - ixload_version
-
-            The HTTP session will be created when the first http request is made.
+    def __init__(self, gw_url, api_version='v1', ixload_version=None, apikey=None, gw_crt=None):
+        """ The HTTP session will be created when the first http request is made.
 
         :param gw_url: IxLoad gateway server URL in format 'https(s)://ip:port/'.
         :param api_version: api version - v0/v1....
         :param ixload_version: full ixload chassis version in format x.x.x.x.
             If None the system will take the latest version installed on the IxLoad gateway.
+        :param apikey: api key for authenticated https connection.
         :param gw_crt: IxLoad gateway certificate for api version https connection.
             If None requests will be sent with verify=False.
         """
 
         self.api_version = api_version
+        self.apikey = apikey
         self.gw_crt = gw_crt
 
         # final url for the connection will have the format: "http://IP:PORT/api/api_version"
@@ -117,7 +110,12 @@ class Connection(object):
             Method for making a HTTP request. The method type (GET, POST, PATCH, DELETE) will be sent as a parameter.
             Along with the url and request data. The HTTP response is returned
         '''
-        headers[Connection.kHeaderContentType] = Connection.kContentJson
+
+        if self.apikey:
+            headers['X-Api-Key'] = self.apikey
+
+        if 'content-type' not in headers:
+            headers['content-type'] = 'application/json'
 
         absUrl = Connection.urljoin(self.url, url)
         logger.debug('method={}, absUrl={}, data={}, params={}, headers={}'.
@@ -161,6 +159,10 @@ class Connection(object):
             Method for calling HTTP DELETE. Will return the HTTP reply.
         '''
         return self.httpRequest("DELETE", url, data, params, headers)
+
+    @property
+    def is_remote(self):
+        return 'localhost' not in self.url and '127.0.0.1' not in self.url
 
 
 def _WebObject(value):

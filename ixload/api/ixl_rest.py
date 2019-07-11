@@ -22,10 +22,10 @@ class IxlRestWrapper(object):
     # IxLoad built in commands ordered alphabetically.
     #
 
-    def connect(self, version, ip, crt_file=None):
+    def connect(self, version, ip, auth=None):
         api_version = 'v1' if version > '8.5' else 'v0'
         connection_url = 'https://{}:8443/'.format(ip) if api_version == 'v1' else 'http://{}:8080/'.format(ip)
-        self.connection = IxRestUtils.Connection(connection_url, api_version, version, crt_file)
+        self.connection = IxRestUtils.Connection(connection_url, api_version, version, auth['apikey'], auth['crt'])
         self.session_url = IxLoadUtils.createSession(self.connection)
 
     def disconnect(self):
@@ -75,7 +75,7 @@ class IxlRestWrapper(object):
 
     def selfCommand(self, obj_ref, command, *arguments, **attributes):
         if command == 'write':
-            IxLoadUtils.saveRxf(self.connection, self.session_url, attributes['destination'])
+            IxLoadUtils.saveRepository(self.connection, self.session_url, attributes['destination'])
         elif command == 'releaseConfigWaitFinish':
             pass
         elif command == 'setResultDir':

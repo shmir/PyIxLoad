@@ -47,44 +47,28 @@ class TestIxlOnline(ixload.test.test_base.TestIxlBase):
         self.logger.info(TestIxlOnline.test_run_stop_test.__doc__)
 
         self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
-        self.ixl.controller.set_results_dir('C:/temp/IxLoad')
+        self.ixl.controller.set_results_dir('/tmp/TestIxlOnline')
         self.ixl.start_test(blocking=True)
-        client_stats = IxlStatView('Test_Client')
-        client_stats.read_stats()
-        print(client_stats.get_all_stats())
-        assert(client_stats.get_stat(16, 'TCP SYN Sent/s') > 0)
+        if self._supports_download():
+            client_stats = IxlStatView('Test_Client')
+            client_stats.read_stats()
+            print(client_stats.get_all_stats())
+            assert(client_stats.get_counter(16, 'TCP SYN Sent/s') > 0)
 
     def test_rerun_test(self):
         """ Test re-run test. """
         self.logger.info(TestIxlOnline.test_run_stop_test.__doc__)
 
         self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
-        self.ixl.controller.set_results_dir('C:/temp/IxLoad')
+        self.ixl.controller.set_results_dir('/tmp/TestIxlOnline')
         self.ixl.start_test(blocking=False)
         self.ixl.stop_test()
         self.ixl.start_test(blocking=True)
-        client_stats = IxlStatView('Test_Client')
-        client_stats.read_stats()
-        print(client_stats.get_all_stats())
-        assert(client_stats.get_stat(16, 'TCP SYN Sent/s') > 0)
-
-    def test_existing_stats(self):
-        """ Test existing statistics (without running test). """
-        self.logger.info(TestIxlOnline.test_existing_stats.__doc__)
-
-        client_stats = IxlStatView('Test_Client')
-        client_stats.read_stats()
-        for time_stamp, values in client_stats.get_all_stats().items():
-            print('{} : {}'.format(time_stamp, values))
-        print(client_stats.get_time_stamp_stats(10))
-        print(client_stats.get_stats('TCP Retries'))
-        print(client_stats.get_counters('TCP Retries'))
-
-    def test_report(self):
-        """ Test report (without running test). """
-        self.logger.info(TestIxlOnline.test_existing_stats.__doc__)
-
-        print self.ixl.controller.create_report()
+        if self._supports_download():
+            client_stats = IxlStatView('Test_Client')
+            client_stats.read_stats()
+            print(client_stats.get_all_stats())
+            assert(client_stats.get_counter(16, 'TCP SYN Sent/s') > 0)
 
     def _reserve_ports(self, config_file):
         self._load_config(config_file)
