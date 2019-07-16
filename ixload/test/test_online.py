@@ -45,9 +45,9 @@ class TestIxlOnline(ixload.test.test_base.TestIxlBase):
     def test_run_stats(self):
         """ Test run and statistics. """
         self.logger.info(TestIxlOnline.test_run_stop_test.__doc__)
-
         self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
-        self.ixl.controller.set_results_dir('/tmp/TestIxlOnline')
+        if not self.ixl.is_remote:
+            self.ixl.controller.set_results_dir('c:/temp/TestIxlOnline')
         self.ixl.start_test(blocking=True)
         if self._supports_download():
             client_stats = IxlStatView('Test_Client')
@@ -60,7 +60,8 @@ class TestIxlOnline(ixload.test.test_base.TestIxlBase):
         self.logger.info(TestIxlOnline.test_run_stop_test.__doc__)
 
         self._reserve_ports(path.join(path.dirname(__file__), 'configs/test_config.rxf'))
-        self.ixl.controller.set_results_dir('/tmp/TestIxlOnline')
+        if not self.ixl.is_remote:
+            self.ixl.controller.set_results_dir('c:/temp/TestIxlOnline')
         self.ixl.start_test(blocking=False)
         self.ixl.stop_test()
         self.ixl.start_test(blocking=True)

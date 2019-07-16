@@ -23,6 +23,7 @@ class IxlRestWrapper(object):
     #
 
     def connect(self, version, ip, auth=None):
+        # note that is version is not supplied we will sue v0.
         api_version = 'v1' if version > '8.5' else 'v0'
         connection_url = 'https://{}:8443/'.format(ip) if api_version == 'v1' else 'http://{}:8080/'.format(ip)
         self.connection = IxRestUtils.Connection(connection_url, api_version, version, auth['apikey'], auth['crt'])
@@ -78,8 +79,6 @@ class IxlRestWrapper(object):
             IxLoadUtils.saveRepository(self.connection, self.session_url, attributes['destination'])
         elif command == 'releaseConfigWaitFinish':
             pass
-        elif command == 'setResultDir':
-            self.config(obj_ref + '/ixload/test', outputDir=True, runResultDirFull=str(arguments[0]))
 
 
 class IxlList(object):

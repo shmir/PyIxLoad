@@ -11,14 +11,14 @@ terminate_840 = '192.168.42.162/1/1'
 originate_850 = '192.168.65.53/1/1'
 terminate_850 = '192.168.65.120/1/1'
 
-server_properties = {windows_840: {'originate': originate_840, 'terminate': terminate_840,
-                                   'ixversion': '8.40.0.277',  'auth': None},
+server_properties = {windows_840: {'originate': originate_840, 'terminate': terminate_840, 'ixversion': '8.40.0.277',
+                                   'auth': None},
                      localhost_850: {'originate': originate_850, 'terminate': terminate_850, 'ixversion': '8.50.0.465',
                                      'crt': 'C:/Program Files (x86)/Ixia/ixLoadGateway/certificate/ixload_certificate.crt'},
-                     windows_850: {'originate': originate_850, 'terminate': terminate_850,
-                                   'ixversion': '8.50.0.465', 'auth': None},
-                     linux_850: {'originate': originate_850, 'terminate': terminate_850,
-                                 'ixversion': '8.50.115.333',  'auth': None}}
+                     windows_850: {'originate': originate_850, 'terminate': terminate_850, 'ixversion': '',
+                                   'auth': None},
+                     linux_850: {'originate': originate_850, 'terminate': terminate_850, 'ixversion': '8.50.115.333',
+                                 'auth': None}}
 
 linux_servers = [linux_850]
 windows_servers = [windows_840, localhost_850, windows_850]
@@ -26,7 +26,7 @@ windows_servers = [windows_840, localhost_850, windows_850]
 gw_crt_ = 'e:/workspace/python/PyIxLoad/ixload_certificate.crt'
 gw_crt_ = None
 
-server_ = 'all'
+server_ = localhost_850
 license_server_ = '192.168.42.61'
 api_key_ = 'YWRtaW58elR0MTNZR0NPRTYyREpubGFWOXJzT3R6Ry13PQ=='
 

@@ -28,7 +28,8 @@ class IxlStatView(object):
         The original CSV file is saved in self.csv list so the test can access the raw data at any time.
         """
 
-        csv_file_path = path.join(self.controller.results_dir, self.view + '.csv').replace('\\', '/')
+        runResultDirFull = self.controller.test.get_attribute('runResultDirFull')
+        csv_file_path = path.join(runResultDirFull, self.view + '.csv').replace('\\', '/')
         if self.controller.api.connection.is_remote:
             file_text = getCsv(self.controller.api.connection, csv_file_path)
             csv_reader = csv.reader(file_text.split('\n'), delimiter=',', quotechar='|')

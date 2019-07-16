@@ -55,6 +55,8 @@ class Connection(object):
             If None requests will be sent with verify=False.
         """
 
+        self.httpSession = None
+
         self.api_version = api_version
         self.apikey = apikey
         self.gw_crt = gw_crt
@@ -67,10 +69,7 @@ class Connection(object):
             self.ixload_version = ixload_version
         else:
             app_types = self.httpGet('applicationTypes')
-            if self.api_version == 'v1':
-                self.ixload_version = str(app_types[-1].appName)
-            else:
-                self.ixload_version = str(app_types[-1].appName)
+            self.ixload_version = str(app_types[-1].name) if self.api_version == 'v1' else str(app_types[-1].appName)
 
         self.httpSession = None
 

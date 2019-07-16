@@ -4,7 +4,6 @@ Classes and utilities to manage IxLoad application.
 @author yoram@ignissoft.com
 """
 
-import os
 import logging
 
 from trafficgenerator.tgn_app import TgnApp
@@ -13,9 +12,6 @@ from ixload.api import IxLoadUtils
 from ixload.api.ixl_rest import IxlRestWrapper, IxlList
 from ixload.ixl_object import IxlObject
 from ixload.ixl_hw import IxlChassisChain
-
-
-RESULTS_DIR = 'c:/temp/IxLoadResults' if os.name == 'nt' else '/tmp/IxLoadResults'
 
 
 def init_ixl(logger=None):
@@ -79,10 +75,14 @@ class IxlApp(TgnApp):
     #
 
     def start_test(self, blocking=True):
-        self.controller.start_test(self.repository.test, blocking)
+        self.controller.start_test(blocking)
 
     def stop_test(self):
         self.controller.stop_test()
+
+    @property
+    def is_remote(self):
+        return self.api.connection.is_remote
 
 
 class IxlController(IxlObject):
@@ -91,17 +91,16 @@ class IxlController(IxlObject):
         data['objType'] = 'ixTestController'
         data['parent'] = None
         super(self.__class__, self).__init__(**data)
-        self.set_results_dir(data.get('resultsDir', RESULTS_DIR))
+        self.test = IxlObject(parent=self, objRef=self.ref + '/ixload/test', objType='test')
 
     def set_results_dir(self, results_dir):
-        self.results_dir = results_dir
-        self.command('setResultDir', self.results_dir)
+        self.test.set_attributes(outputDir=True, runResultDirFull=results_dir)
 
     def set_licensing(self, licenseServer):
         preferences = IxlObject(parent=self, objRef=self.ref + '/ixload/preferences', objType='preferences')
         preferences.set_attributes(licenseServer=licenseServer)
 
-    def start_test(self, test, blocking=True):
+    def start_test(self, blocking=True):
         IxLoadUtils.runTest(self.api.connection, self.api.session_url)
         if blocking:
             self.wait_for_test_finish()
