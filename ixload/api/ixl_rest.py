@@ -22,10 +22,11 @@ class IxlRestWrapper(object):
     # IxLoad built in commands ordered alphabetically.
     #
 
-    def connect(self, version, ip, auth=None):
-        # note that is version is not supplied we will sue v0.
+    def connect(self, version, ip, port, auth=None):
+        # note that is version is not supplied we will use v0.
         api_version = 'v1' if version > '8.5' else 'v0'
-        connection_url = 'https://{}:8443/'.format(ip) if api_version == 'v1' else 'http://{}:8080/'.format(ip)
+        port = port if port else (8443 if api_version == 'v1' else 8080)
+        connection_url = 'https://{}:{}/'.format(ip, port)
         self.connection = IxRestUtils.Connection(connection_url, api_version, version, auth['apikey'], auth['crt'])
         self.session_url = IxLoadUtils.createSession(self.connection)
 

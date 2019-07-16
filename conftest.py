@@ -23,9 +23,6 @@ server_properties = {windows_840: {'originate': originate_840, 'terminate': term
 linux_servers = [linux_850]
 windows_servers = [windows_840, localhost_850, windows_850]
 
-gw_crt_ = 'e:/workspace/python/PyIxLoad/ixload_certificate.crt'
-gw_crt_ = None
-
 server_ = localhost_850
 license_server_ = '192.168.42.61'
 api_key_ = 'YWRtaW58elR0MTNZR0NPRTYyREpubGFWOXJzT3R6Ry13PQ=='
