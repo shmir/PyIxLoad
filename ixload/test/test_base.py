@@ -19,7 +19,7 @@ class TestIxlBase(trafficgenerator.test.test_tgn.TestTgnBase):
     def setup(self):
         super(TestIxlBase, self).setup()
         self.ixl = init_ixl(self.logger)
-        self.ixl.connect(self.version, self.server_ip, auth=self.auth)
+        self.ixl.connect(self.server_ip, None, self.version, auth=self.auth)
         if self.ls:
             self.ixl.controller.set_licensing(self.ls)
 

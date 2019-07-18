@@ -46,16 +46,16 @@ class IxlApp(TgnApp):
         IxlObject.api = self.api
         IxlObject.str_2_class = TYPE_2_OBJECT
 
-    def connect(self, version, ip='localhost', port=None, auth=None):
+    def connect(self, ip='localhost', port=None, version=None, auth=None):
         """ Connect to IxTcl/REST server.
 
-        :param version: IxLoad chassis version
         :param ip: IxLoad gateway server.
         :param port: FFU - IxLoad gateway server port. If None - use default port (8080 or 443).
+        :param version: IxLoad chassis version. If None - use version from IxLoad gateway.
         :param auth: either user/password or full path to crt file for v1 HTTPS connections.
         """
 
-        self.api.connect(version, ip, port, auth)
+        self.api.connect(ip=ip, port=port, version=(version if version else ''), auth=auth)
         IxlApp.controller = IxlController()
 
     def disconnect(self):

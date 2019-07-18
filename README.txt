@@ -19,7 +19,7 @@ Supported operations:
 - Disconnect
 
 Known limitations:
-- one traffic flow per test
+- When using remote IxLoad gateway, configurations with additional files (on top of the rxf itself) are not supported.
 
 Contact:
 Feel free to contact me with any question or feature request at yoram@ignissoft.com

@@ -23,7 +23,7 @@ server_properties = {windows_840: {'originate': originate_840, 'terminate': term
 linux_servers = [linux_850]
 windows_servers = [windows_840, localhost_850, windows_850]
 
-server_ = localhost_850
+server_ = 'all'
 license_server_ = '192.168.42.61'
 api_key_ = 'YWRtaW58elR0MTNZR0NPRTYyREpubGFWOXJzT3R6Ry13PQ=='
 
