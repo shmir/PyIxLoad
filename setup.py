@@ -35,7 +35,7 @@ setup(
     author_email='yoram@ignissoft.com',
     description='Python OO API package to automate Ixia IxLoad traffic generator',
     long_description=long_description,
-    packages=['ixload', 'ixload.test', 'ixload.api'],
+    packages=['ixload', 'ixload.api'],
     include_package_data=True,
     platforms='any',
     test_suite='ixload.test',

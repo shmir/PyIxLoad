@@ -16,6 +16,13 @@ class TestIxlBase(trafficgenerator.test.test_tgn.TestTgnBase):
 
     trafficgenerator.test.test_tgn.TestTgnBase.config_file = path.join(path.dirname(__file__), 'IxLoad.ini')
 
+    server_ip = None
+    originate = None
+    terminate = None
+    version = None
+    auth = None
+    ls = None
+
     def setup(self):
         super(TestIxlBase, self).setup()
         self.ixl = init_ixl(self.logger)

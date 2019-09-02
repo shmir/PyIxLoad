@@ -12,11 +12,11 @@ Two IXL ports connected back to back.
 from os import path
 import time
 
-import ixload.test.test_base
+from . import test_base
 from ixload.ixl_statistics_view import IxlStatView
 
 
-class TestIxlOnline(ixload.test.test_base.TestIxlBase):
+class TestIxlOnline(test_base.TestIxlBase):
 
     ports = []
 

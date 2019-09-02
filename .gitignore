@@ -93,11 +93,11 @@ ENV/
 
 *.pyc
 *-save.*
-ixload/test/logs
+test/logs
 
 .idea
 .pytest_cache
 
 *.crt
 
-ixload/test/configs/test_load_config.rxf
+tests/configs/test_load_config.rxf
