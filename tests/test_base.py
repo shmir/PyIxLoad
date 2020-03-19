@@ -7,14 +7,14 @@ Base class for all IxLoad package tests.
 from os import path
 import inspect
 
-import trafficgenerator.test.test_tgn
+import trafficgenerator.test_tgn
 from trafficgenerator.tgn_utils import is_local_host
 from ixload.ixl_app import init_ixl
 
 
-class TestIxlBase(trafficgenerator.test.test_tgn.TestTgnBase):
+class TestIxlBase(trafficgenerator.test_tgn.TestTgnBase):
 
-    trafficgenerator.test.test_tgn.TestTgnBase.config_file = path.join(path.dirname(__file__), 'IxLoad.ini')
+    trafficgenerator.test_tgn.TestTgnBase.config_file = path.join(path.dirname(__file__), 'IxLoad.ini')
 
     server_ip = None
     originate = None

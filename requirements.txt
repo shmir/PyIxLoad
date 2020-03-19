@@ -1,8 +1,5 @@
 future
 configparser
-pytest
-pytest-runner
 requests
-tox
 
-pytrafficgen==1.5.5
+pytrafficgen==1.6.2
