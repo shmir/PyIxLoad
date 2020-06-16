@@ -1,5 +1,4 @@
 """
-@author yoram@ignissoft.com
 """
 
 
@@ -18,6 +17,9 @@ class IxlRestWrapper(object):
         IxLoadUtils.logger = logger
         IxRestUtils.logger = logger
 
+        self.connection: IxRestUtils.Connection = None
+        self.session_url: str = ''
+
     #
     # IxLoad built in commands ordered alphabetically.
     #
@@ -25,7 +27,8 @@ class IxlRestWrapper(object):
     def connect(self, ip, port=None, version='', auth=None):
         # note that is version is not supplied we will use v0.
         api_version = 'v1' if version > '8.5' else 'v0'
-        port = port if port else (8443 if api_version == 'v1' else 8080)
+        default_port = 8443 if api_version == 'v1' else 8080
+        port = port if port else default_port
         connection_url = '{}://{}:{}/'.format('https' if api_version == 'v1' else 'http', ip, port)
         self.connection = IxRestUtils.Connection(connection_url, api_version, version, auth['apikey'], auth['crt'])
         self.session_url = IxLoadUtils.createSession(self.connection)
@@ -72,10 +75,10 @@ class IxlRestWrapper(object):
             if links:
                 return [parent_ref + '/' + link.jsonOptions['rel'] for link in links]
 
-    def clear_chassis_chain(self, obj_ref):
+    def clear_chassis_chain(self, _):
         IxLoadUtils.clearChassisList(self.connection, self.session_url)
 
-    def selfCommand(self, obj_ref, command, *arguments, **attributes):
+    def self_command(self, obj_ref, command, *arguments, **attributes):
         if command == 'write':
             IxLoadUtils.saveRepository(self.connection, self.session_url, attributes['destination'])
         elif command == 'releaseConfigWaitFinish':

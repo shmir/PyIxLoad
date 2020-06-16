@@ -1,5 +1,7 @@
-
+import sys
+import logging
 import pytest
+
 
 windows_840 = '192.168.65.68'
 windows_850 = '192.168.65.94'
@@ -12,8 +14,8 @@ originate_840 = '192.168.42.174/1/1'
 terminate_840 = '192.168.42.210/1/1'
 originate_850 = '192.168.65.30/1/1'
 terminate_850 = '192.168.65.120/1/1'
-originate_900 = '192.168.65.39/1/1'
-terminate_900 = '192.168.65.40/1/1'
+originate_900 = '192.168.65.88/1/1'
+terminate_900 = '192.168.65.41/1/1'
 
 server_properties = {windows_840: {'originate': originate_840, 'terminate': terminate_840, 'ixversion': '8.40.0.277',
                                    'auth': None},
@@ -28,7 +30,7 @@ server_properties = {windows_840: {'originate': originate_840, 'terminate': term
                      linux_900: {'originate': originate_900, 'terminate': terminate_900, 'ixversion': '9.00.0.347',
                                  'auth': None}}
 
-server_ = [windows_900]
+server_ = [localhost_900]
 license_server_ = '192.168.42.61'
 api_key_ = 'YWRtaW58elR0MTNZR0NPRTYyREpubGFWOXJzT3R6Ry13PQ=='
 crt_file_ = 'C:/Program Files (x86)/Ixia/ixLoadGateway/certificate/ixload_certificate.crt'
@@ -44,13 +46,22 @@ def pytest_addoption(parser):
     parser.addoption('--ls', action='store', default=license_server_, help='IP address of license server')
 
 
+@pytest.fixture(scope='session')
+def logger():
+    logger = logging.getLogger('tgn')
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(logging.StreamHandler(sys.stdout))
+    yield logger
+
+
 @pytest.fixture
 def server(request):
     yield request.param
 
 
 @pytest.fixture(autouse=True)
-def config(request, server):
+def config(request, logger, server):
+    request.cls.logger = logger
     request.cls.server_ip = server
     request.cls.originate = _get_cli_or_property(request, server, 'originate')
     request.cls.terminate = _get_cli_or_property(request, server, 'terminate')

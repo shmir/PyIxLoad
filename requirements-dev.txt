@@ -1,4 +1,10 @@
 -r requirements.txt
 
+# Testing
 pytest
 tox
+
+# Packaging
+wheel
+setuptools-scm
+twine

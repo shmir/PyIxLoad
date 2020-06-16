@@ -1,54 +1,48 @@
-#!/usr/bin/env python
-# encoding: utf-8
-
-from __future__ import print_function
-from setuptools import setup
-import io
-
-import ixload
+from setuptools import setup, find_packages
 
 
-def read(*filenames, **kwargs):
-    encoding = kwargs.get('encoding', 'utf-8')
-    sep = kwargs.get('sep', '\n')
-    buf = []
-    for filename in filenames:
-        with io.open(filename, encoding=encoding) as f:
-            buf.append(f.read())
-    return sep.join(buf)
+def main():
+
+    with open('requirements.txt') as f:
+        install_requires = f.read().splitlines()
+    with open('README.rst') as f:
+        long_description = f.read()
+
+    setup(
+        name='pyixload',
+        description='Python OO API package to automate Ixia IxLoad traffic generator',
+        url='https://github.com/shmir/PyIxLoad/',
+        use_scm_version={
+            'root': '.',
+            'relative_to': __file__,
+            'local_scheme': 'node-and-timestamp'
+        },
+        license='Apache Software License',
+
+        author='Yoram Shamir',
+        author_email='yoram@ignissoft.com',
+
+        long_description=long_description,
+
+        platforms='any',
+        install_requires=install_requires,
+        packages=find_packages(exclude=['tests']),
+        include_package_data=True,
+
+        classifiers=[
+            'Development Status :: 5 - Production/Stable',
+            'Natural Language :: English',
+            'Topic :: Software Development :: Testing :: Traffic Generation',
+            'Intended Audience :: Developers',
+            'License :: OSI Approved :: Apache Software License',
+            'Operating System :: OS Independent',
+            'Programming Language :: Python :: 3.6',
+            'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8',
+        ],
+        keywords='ixload l4l7 test tool ixia automation',
+    )
 
 
-long_description = read('README.txt')
-
-with open('requirements.txt') as f:
-    required = f.read().splitlines()
-install_requires = [r for r in required if r and r[0] != '#' and not r.startswith('git')]
-
-setup(
-    name='pyixload',
-    version=ixload.__version__,
-    url='https://github.com/shmir/PyIxLoad/',
-    license='Apache Software License',
-    author='Yoram Shamir',
-    install_requires=install_requires,
-    tests_require=['pytest'],
-    author_email='yoram@ignissoft.com',
-    description='Python OO API package to automate Ixia IxLoad traffic generator',
-    long_description=long_description,
-    packages=['ixload', 'ixload.api'],
-    include_package_data=True,
-    platforms='any',
-    test_suite='ixload.test',
-    classifiers=[
-        'Programming Language :: Python',
-        'Development Status :: 5 - Production/Stable',
-        'Natural Language :: English',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: Apache Software License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Topic :: Software Development :: Testing :: Traffic Generation'],
-    keywords='ixload l4l7 test tool ixia automation',
-)
+if __name__ == '__main__':
+    main()
