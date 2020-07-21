@@ -1,5 +1,4 @@
 future
-configparser
 requests
 
-pytrafficgen==3.0.1
+pytrafficgen>3.0.2,<=3.0.3

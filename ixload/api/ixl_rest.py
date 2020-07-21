@@ -1,13 +1,15 @@
 """
 """
 
+import logging
+from typing import Optional, Dict
 
 from ixload.api import IxRestUtils, IxLoadUtils
 
 
-class IxlRestWrapper(object):
+class IxlRestWrapper:
 
-    def __init__(self, logger):
+    def __init__(self, logger: logging.Logger):
         """ Init IXL REST package.
 
         :param looger: application logger.
@@ -17,23 +19,28 @@ class IxlRestWrapper(object):
         IxLoadUtils.logger = logger
         IxRestUtils.logger = logger
 
-        self.connection: IxRestUtils.Connection = None
+        self.connection: Optional[IxRestUtils.Connection] = None
         self.session_url: str = ''
 
     #
     # IxLoad built in commands ordered alphabetically.
     #
 
-    def connect(self, ip, port=None, version='', auth=None):
-        # note that is version is not supplied we will use v0.
+    def connect(self, ip: str, port: Optional[int] = None, version: Optional[str] = None,
+                auth: Optional[Dict[str, str]] = None) -> None:
+        """ Connect to IxLoad gateway server and create session. """
         api_version = 'v1' if version > '8.5' else 'v0'
         default_port = 8443 if api_version == 'v1' else 8080
         port = port if port else default_port
-        connection_url = '{}://{}:{}/'.format('https' if api_version == 'v1' else 'http', ip, port)
-        self.connection = IxRestUtils.Connection(connection_url, api_version, version, auth['apikey'], auth['crt'])
+        http_protocol = 'https' if api_version == 'v1' else 'http'
+        connection_url = f'{http_protocol}://{ip}:{port}/'
+        apikey = auth.get('apikey') if auth else None
+        crt = auth.get('crt') if auth else None
+        self.connection = IxRestUtils.Connection(connection_url, api_version, version, apikey, crt)
         self.session_url = IxLoadUtils.createSession(self.connection)
 
-    def disconnect(self):
+    def disconnect(self) -> None:
+        """ Delete session and disconnect from IxLoad gateway server. """
         IxLoadUtils.deleteSession(self.connection, self.session_url)
 
     def new(self, obj_type, **attributes):

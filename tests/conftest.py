@@ -1,82 +1,81 @@
+"""
+Conftest for ixload package testing.
+"""
+
 import sys
 import logging
+from pathlib import Path
+
 import pytest
+from _pytest.config.argparsing import Parser
+from _pytest.fixtures import SubRequest
+from _pytest.python import Metafunc
+
+from trafficgenerator.tgn_utils import get_test_config
+from ixload.ixl_app import init_ixl, IxlApp
 
 
-windows_840 = '192.168.65.68'
-windows_850 = '192.168.65.94'
-windows_900 = '192.168.65.54'
-localhost_900 = 'localhost'
-linux_850 = '192.168.65.87'
-linux_900 = '192.168.65.23'
-
-originate_840 = '192.168.42.174/1/1'
-terminate_840 = '192.168.42.210/1/1'
-originate_850 = '192.168.65.30/1/1'
-terminate_850 = '192.168.65.120/1/1'
-originate_900 = '192.168.65.88/1/1'
-terminate_900 = '192.168.65.41/1/1'
-
-server_properties = {windows_840: {'originate': originate_840, 'terminate': terminate_840, 'ixversion': '8.40.0.277',
-                                   'auth': None},
-                     windows_850: {'originate': originate_850, 'terminate': terminate_850, 'ixversion': '8.50.115.333',
-                                   'auth': None},
-                     windows_900: {'originate': originate_900, 'terminate': terminate_900, 'ixversion': '9.00.0.347',
-                                   'auth': None},
-                     localhost_900: {'originate': originate_900, 'terminate': terminate_900, 'ixversion': '9.00.0.347',
-                                     'crt': None},
-                     linux_850: {'originate': originate_850, 'terminate': terminate_850, 'ixversion': '8.50.115.333',
-                                 'auth': None},
-                     linux_900: {'originate': originate_900, 'terminate': terminate_900, 'ixversion': '9.00.0.347',
-                                 'auth': None}}
-
-server_ = [localhost_900]
-license_server_ = '192.168.42.61'
-api_key_ = 'YWRtaW58elR0MTNZR0NPRTYyREpubGFWOXJzT3R6Ry13PQ=='
-crt_file_ = 'C:/Program Files (x86)/Ixia/ixLoadGateway/certificate/ixload_certificate.crt'
+ixl_config = Path(__file__).parent.joinpath('test_config.py').as_posix()
+if Path(ixl_config).exists():
+    ixl_server = get_test_config(ixl_config).server
+else:
+    ixl_server = None
+    ixl_config = None
 
 
-def pytest_addoption(parser):
-    parser.addoption('--server', action='append', default=server_, help='REST server IP')
-    parser.addoption('--originate', action='store', default=None, help='chassis1/module1/port1')
-    parser.addoption('--terminate', action='store', default=None, help='chassis2/module2/port2')
-    parser.addoption('--ixversion', action='store', default=None, help='server full vesion')
-    parser.addoption('--apikey', action='store', default=api_key_, help='ApiKey as retrieved from IxLoad GUI')
-    parser.addoption('--crt', action='store', default=None, help='full path to gw crt file')
-    parser.addoption('--ls', action='store', default=license_server_, help='IP address of license server')
+def pytest_addoption(parser: Parser) -> None:
+    """ Add options to allow the user to determine which servers to test. """
+    parser.addoption('--ixl-server', action='append', default=ixl_server, help='REST server IP')
+    parser.addoption('--ixl-config', action='store', default=ixl_config, help='path to configuration file')
+
+
+def pytest_generate_tests(metafunc: Metafunc) -> None:
+    """ Generate tests for each serever from pytest options. """
+    metafunc.parametrize('server', metafunc.config.getoption('--ixl-server'), indirect=True)
 
 
 @pytest.fixture(scope='session')
-def logger():
-    logger = logging.getLogger('tgn')
+def logger() -> logging.Logger:
+    """ Yields configured logger. """
+    logger = logging.getLogger('ixload')
     logger.setLevel(logging.DEBUG)
     logger.addHandler(logging.StreamHandler(sys.stdout))
     yield logger
 
 
-@pytest.fixture
-def server(request):
+@pytest.fixture(scope='session')
+def server(request: SubRequest) -> str:
+    """ Yields server name in confing file - generate tests will generate servers based on the server option. """
     yield request.param
 
 
-@pytest.fixture(autouse=True)
-def config(request, logger, server):
-    request.cls.logger = logger
-    request.cls.server_ip = server
-    request.cls.originate = _get_cli_or_property(request, server, 'originate')
-    request.cls.terminate = _get_cli_or_property(request, server, 'terminate')
-    request.cls.version = _get_cli_or_property(request, server, 'ixversion')
-    request.cls.auth = {'apikey': _get_cli_or_property(request, server, 'apikey'),
-                        'crt': _get_cli_or_property(request, server, 'crt')}
-    request.cls.ls = _get_cli_or_property(request, server, 'ls')
+@pytest.fixture(scope='session')
+def server_properties(request: SubRequest, server: str) -> dict:
+    """ Yields server properties dict for the requested server. """
+    yield get_test_config(request.config.getoption('--ixl-config')).server_properties[server]
 
 
-def pytest_generate_tests(metafunc):
-    metafunc.parametrize('server', metafunc.config.getoption('--server'), indirect=True)
+@pytest.fixture(scope='session')
+def ixload(request: SubRequest, logger: logging.Logger, server_properties: dict) -> IxlApp:
+    """ Yields connected IxLoad object. """
+    ixload = init_ixl(logger)
+    ip = server_properties['server']
+    version = server_properties['ixversion']
+    auth = server_properties['auth']
+    ixload.connect(ip, version=version, auth=auth)
+    license_server = get_test_config(request.config.getoption('--ixl-config')).license_server
+    ixload.controller.set_licensing(license_server)
+    yield ixload
+    ixload.disconnect()
 
 
-def _get_cli_or_property(request, server, option):
-    if request.config.getoption('--' + option):
-        return request.config.getoption('--' + option)
-    else:
-        return server_properties[server].get(option, None)
+@pytest.fixture(scope='session')
+def originate(server_properties: dict) -> str:
+    """ Yields originate port location. """
+    yield server_properties['originate']
+
+
+@pytest.fixture(scope='session')
+def terminate(server_properties: dict) -> str:
+    """ Yields terminate port location. """
+    yield server_properties['terminate']

@@ -1,10 +1,10 @@
 """
 Classes and utilities to manage IxLoad application.
-
-@author yoram@ignissoft.com
 """
 
+from __future__ import annotations
 import logging
+from pathlib import Path
 
 from trafficgenerator.tgn_app import TgnApp
 
@@ -14,11 +14,10 @@ from ixload.ixl_object import IxlObject
 from ixload.ixl_hw import IxlChassisChain
 
 
-def init_ixl(logger=None):
-    """ Create IXN object.
+def init_ixl(logger: logging.Logger = None) -> IxlApp:
+    """ Create IxLoad object.
 
     :param logger: python logger object. If no logger the package will create default logger.
-    :return: IXL object
     """
 
     if not logger:
@@ -47,18 +46,17 @@ class IxlApp(TgnApp):
         IxlObject.str_2_class = TYPE_2_OBJECT
 
     def connect(self, ip='localhost', port=None, version=None, auth=None):
-        """ Connect to IxTcl/REST server.
+        """ Connect to IxLoad gateway server.
 
         :param ip: IxLoad gateway server.
         :param port: FFU - IxLoad gateway server port. If None - use default port (8080 or 443).
         :param version: IxLoad chassis version. If None - use version from IxLoad gateway.
         :param auth: either user/password or full path to crt file for v1 HTTPS connections.
         """
-
-        self.api.connect(ip=ip, port=port, version=(version if version else ''), auth=auth)
+        self.api.connect(ip, port, version=(version if version else ''), auth=auth)
         IxlApp.controller = IxlController()
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         """ Disconnect from chassis and server. """
         self.api.disconnect()
 
@@ -66,10 +64,10 @@ class IxlApp(TgnApp):
         self.repository = IxlRepository()
 
     def load_config(self, config_file_name, test_name='Test1'):
-        self.repository = IxlRepository(name=config_file_name.replace('\\', '/'), test=test_name)
+        self.repository = IxlRepository(name=Path(config_file_name).as_posix(), test=test_name)
 
     def save_config(self, config_file_name):
-        self.repository.save_config(config_file_name.replace('\\', '/'))
+        self.repository.save_config(Path(config_file_name).as_posix())
 
     #
     # IxLoad GUI commands.
@@ -90,8 +88,7 @@ class IxlController(IxlObject):
 
     def __init__(self, **data):
         data['objType'] = 'ixTestController'
-        data['parent'] = None
-        super(self.__class__, self).__init__(**data)
+        super().__init__(parent=None, **data)
         self.test = IxlObject(parent=self, objRef=self.ref + '/ixload/test', objType='test')
 
     def set_results_dir(self, results_dir):

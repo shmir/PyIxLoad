@@ -1,10 +1,10 @@
 """
 Base classes and utilities to manage IxLoad (IXL).
-
-:author: yoram@ignissoft.com
 """
 
+from __future__ import annotations
 from collections import OrderedDict
+from typing import List, Type, Optional
 
 from trafficgenerator.tgn_object import TgnObject
 
@@ -14,26 +14,24 @@ class IxlObject(TgnObject):
 
     str_2_class = {}
 
-    def __init__(self, **data):
-        if data['parent'] and hasattr(data['parent'], 'repository'):
-            self.repository = data['parent'].repository
-        super(IxlObject, self).__init__(**data)
+    def __init__(self, parent: Optional[IxlObject], **data: str):
+        if parent and hasattr(parent, 'repository'):
+            self.repository = parent.repository
+        super().__init__(parent, **data)
 
-    def get_obj_class(self, obj_type):
-        """
+    def get_obj_class(self, obj_type: str) -> Type[IxlObject]:
+        """ Returns object class if specific class else IxlObject.
+
         :param obj_type: IXL object type.
-        :return: object class if specific class else IxlObject.
         """
-
         return IxlObject.str_2_class.get(obj_type.lower(), IxlObject)
 
-    def _create(self, **attributes):
-        """ Create new object on IxLoad.
+    def _create(self, **attributes: str) -> str:
+        """ Creates new object on IxLoad.
 
         :return: IXL object reference.
         """
-
-        return self.api.new(self.obj_type(), **attributes)
+        return self.api.new(self.type, **attributes)
 
     def command(self, command, *arguments, **attributes):
         return self.api.self_command(self.ref, command, *arguments, **attributes)
@@ -78,3 +76,6 @@ class IxlObject(TgnObject):
 
     def execute(self, command, *arguments):
         return self.api.execute(command, self.obj_ref(), *arguments)
+
+    def get_objects_from_attribute(self, attribute: str) -> List[TgnObject]:
+        pass

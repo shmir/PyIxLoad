@@ -100,4 +100,4 @@ test/logs
 
 *.crt
 
-tests/configs/test_load_config.rxf
+tests/configs/temp

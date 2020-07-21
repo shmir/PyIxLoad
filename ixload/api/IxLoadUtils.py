@@ -564,4 +564,4 @@ def download_file(connection, filename):
         params = {'localPath': 'C:/ProgramData/Ixia/IxLoadGateway/{}'.format(relative_file_path)}
         reply = connection.httpRequest('GET', 'downloadResource', {}, params, headers)
     with open(filename, 'wb') as f:
-        f.write(reply.text)
+        f.write(reply.text.encode())
