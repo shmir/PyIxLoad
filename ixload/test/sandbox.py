@@ -31,7 +31,7 @@ except:
     _tclCallback_ = _tk_
 
 
-sys.path.append('C:/Program Files (x86)/Ixia/IxLoad/8.01-GA/Client/Lib/Common')
+sys.path.append('C:/Program Files (x86)/Ixia/IxLoad/9.10.0.311/Client/Lib/Common')
 
 def _TclEval(tclStatement):
     # wrapper function for debugging, etc.
@@ -168,7 +168,7 @@ class IxLoad(object):
         if _IsWindows():
             curDir = os.path.normpath(os.path.dirname(sys.modules[self.__module__].__file__))
             self.pipe = None
-            wishPath = "C:/Program Files (x86)/Ixia/IxLoad/8.01-GA/TclScripts/bin/IxiaWish.tcl"
+            wishPath = "C:/Program Files (x86)/Ixia/IxLoad/9.10.0.311/TclScripts/bin/IxiaWish.tcl"
             _TclEval('source "%s"' % wishPath)
             self.initializePipe(curDir)
         _TclEval("package require IxLoadCsv")        

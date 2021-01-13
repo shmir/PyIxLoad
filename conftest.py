@@ -5,10 +5,10 @@ from trafficgenerator.tgn_utils import ApiType
 
 
 def pytest_addoption(parser):
-    parser.addoption('--api', action='store', default='rest', help='api options: rest or tcl')
+    parser.addoption('--api', action='store', default='tcl', help='api options: rest or tcl')
     parser.addoption('--server', action='store', default='localhost:8080', help='REST server in format ip:port')
-    parser.addoption('--Traffic1@Network1', action='store', default='192.168.42.207/1/1', help='chassis1/module1/port1')
-    parser.addoption('--Traffic2@Network2', action='store', default='192.168.42.173/1/1', help='chassis2/module2/port2')
+    parser.addoption('--Traffic1@Network1', action='store', default='192.168.65.30/1/1', help='chassis1/module1/port1')
+    parser.addoption('--Traffic2@Network2', action='store', default='192.168.65.29/1/1', help='chassis2/module2/port2')
 
 
 @pytest.fixture(autouse=True, scope='class')
