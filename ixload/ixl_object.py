@@ -1,10 +1,9 @@
 """
 Base classes and utilities to manage IxLoad (IXL).
 """
-
 from __future__ import annotations
 from collections import OrderedDict
-from typing import List, Type, Optional
+from typing import List, Type, Optional, Dict
 
 from trafficgenerator.tgn_object import TgnObject
 
@@ -36,38 +35,33 @@ class IxlObject(TgnObject):
     def command(self, command, *arguments, **attributes):
         return self.api.self_command(self.ref, command, *arguments, **attributes)
 
-    def set_attributes(self, **attributes):
-        self.api.config(self.obj_ref(), **attributes)
+    def set_attributes(self, **attributes: str) -> None:
+        """ Set attributes. """
+        self.api.config(self.ref, **attributes)
 
-    def get_attributes(self):
-        """
-        :param attribute: requested attributes.
-        :return: attribute value.
-        """
+    def get_attributes(self) -> Dict[str, str]:
+        """ Get all attributes values for the object. """
         return self.api.cget(self.ref)
 
-    def get_attribute(self, attribute):
-        """
-        :param attribute: requested attribute.
-        :return: attribute value.
-        """
+    def get_attribute(self, attribute) -> str:
+        """ Get attribute value.
 
+        :param attribute: requested attribute.
+        """
         return self.api.cget(self.ref, attribute)
 
-    def get_children(self, *types):
+    def get_children(self, *types: str) -> List[IxlObject]:
         """ Read (getList) children from IXN.
 
         Use this method to align with current IXN configuration.
 
         :param types: list of requested children.
-        :return: list of all children objects of the requested types.
         """
-
-        children_objs = OrderedDict()
+        children_objects = OrderedDict()
         for child_type in types:
-            children_objs.update(self._build_children_objs(child_type.replace('List', ''),
-                                                           self.api.get_children(self, child_type)))
-        return list(children_objs.values())
+            children_objects.update(self._build_children_objs(child_type.replace('List', ''),
+                                                              self.api.get_children(self, child_type)))
+        return list(children_objects.values())
 
     def get_name(self):
         name = self.get_attribute('name')

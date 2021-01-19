@@ -1,7 +1,6 @@
 """
 IxLoad package testing.
 """
-
 import inspect
 import logging
 import time
@@ -30,7 +29,7 @@ def test_load_config(ixload: IxlApp) -> None:
     save_config(ixload)
 
 
-def test_get_set(ixload):
+def test_get_set(ixload: IxlApp) -> None:
     """ Test get/set operations. """
     logger.info(test_get_set.__doc__)
 
