@@ -20,4 +20,4 @@ license_mode = 'Perpetual'
 
 # Default for options.
 api = ['rest']
-server = ['windows_910']
+server = ['windows_910', 'linux_910']

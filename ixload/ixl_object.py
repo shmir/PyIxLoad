@@ -13,7 +13,7 @@ class IxlObject(TgnObject):
 
     str_2_class = {}
 
-    def __init__(self, parent: Optional[IxlObject], **data: str):
+    def __init__(self, parent: IxlObject, **data: str):
         if parent and hasattr(parent, 'repository'):
             self.repository = parent.repository
         super().__init__(parent, **data)
@@ -35,7 +35,7 @@ class IxlObject(TgnObject):
     def command(self, command, *arguments, **attributes):
         return self.api.self_command(self.ref, command, *arguments, **attributes)
 
-    def set_attributes(self, **attributes: str) -> None:
+    def set_attributes(self, **attributes: object) -> None:
         """ Set attributes. """
         self.api.config(self.ref, **attributes)
 

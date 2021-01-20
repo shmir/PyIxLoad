@@ -64,7 +64,7 @@ class IxlApp(TgnApp):
         """ Create empty configuration. """
         self.repository = IxlRepository()
 
-    def load_config(self, config_file_name: str, test_name=Optional['Test1']) -> None:
+    def load_config(self, config_file_name: str, test_name: Optional[str] = 'Test1') -> None:
         """ Load configuration from rxf file.
 
         :param config_file_name: Full path to configuration file name (rxf file).
@@ -104,7 +104,7 @@ class IxlController(IxlObject):
     def set_results_dir(self, results_dir):
         self.test.set_attributes(outputDir=True, runResultDirFull=results_dir)
 
-    def set_licensing(self, license_server: str, license_model: Optional['Subscription']) -> None:
+    def set_licensing(self, license_server: str, license_model: Optional['str'] = 'Subscription') -> None:
         preferences = IxlObject(parent=self, objRef=self.ref + '/ixload/preferences', objType='preferences')
         preferences.set_attributes(licenseServer=license_server, licenseModel=f'{license_model} Mode')
 
@@ -126,31 +126,29 @@ class IxlController(IxlObject):
 
 class IxlRepository(IxlObject):
 
-    def __init__(self, **data):
+    def __init__(self, **data: str) -> None:
         data['objType'] = 'ixRepository'
-        data['parent'] = None
-        super(self.__class__, self).__init__(**data)
+        super().__init__(parent=None, **data)
+
         self.repository = self
         self.cc = self.get_child('chassisChain')
         self.cc.clear()
-        self.load_test(data.get('test', 'Test1'))
-
-        self.test = None
+        self.test = self.load_test(data.get('test', 'Test1'))
 
     def _create(self, **attributes):
-        return super(self.__class__, self)._create(name=self._data.get('name', None))
+        return super()._create(name=self._data.get('name', None))
 
-    def load_test(self, name='Test1', force_port_ownership=False):
-        test = IxlObject(parent=self, objType='tests', objRef=self.ref + '/test/activeTest')
+    def load_test(self, name='Test1', force_port_ownership=False) -> IxlTest:
+        test = IxlTest(parent=self, objType='tests', objRef=self.ref + '/test/activeTest')
         test.get_name()
         tests = [test]
 
         for test in tests:
             if test.name == name:
-                self.test = test
-                self.test.set_attributes(enableForceOwnership=force_port_ownership)
+                test.set_attributes(enableForceOwnership=force_port_ownership)
                 break
-        self.test.get_children('communityList')
+        test.get_children('communityList')
+        return test
 
     def get_elements(self):
         elements = {o.obj_name(): o for o in self.test.get_objects_by_type('community')}
@@ -163,7 +161,7 @@ class IxlRepository(IxlObject):
 class IxlElement(IxlObject):
 
     def __init__(self, **data):
-        super(self.__class__, self).__init__(**data)
+        super().__init__(**data)
         self.network = self.get_child('network')
 
     def reserve(self, location):
