@@ -8,7 +8,7 @@ This package implements Python OO API for Ixia IxLoad traffic generator.
 Installation:
  stable - pip install pyixload
 
-Functionality
+Functionality:
 
 The current version supports the following test flow:
  Load configuration -> Get/Set attributes -> Start/Stop traffic -> Get statistics.
