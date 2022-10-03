@@ -5,7 +5,7 @@ IXL - IxLoad
 This package implements Python OO API for Ixia IxLoad traffic generator.
 
 Installation:
-stable - pip instsll pyixload
+stable - pip install pyixload
 
 Functionality
 The current version supports the following test flow:
