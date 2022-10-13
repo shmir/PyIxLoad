@@ -1,7 +1,8 @@
 """
 Base classes and utilities to manage IxLoad (IXL).
 """
-from __future__ import annotations
+#as per https://github.com/shmir/PyIxLoad/issues/2 
+#from __future__ import annotations
 from collections import OrderedDict
 from typing import List, Type, Optional, Dict
 
