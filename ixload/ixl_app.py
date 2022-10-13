@@ -1,7 +1,8 @@
 """
 Classes and utilities to manage IxLoad application.
 """
-from __future__ import annotations
+#as per https://github.com/shmir/PyIxLoad/issues/2 
+#from __future__ import annotations
 import logging
 from pathlib import Path
 from typing import Optional
